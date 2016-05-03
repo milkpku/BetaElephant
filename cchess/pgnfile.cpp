@@ -98,8 +98,8 @@ inline int ICCS_MOVE(const char *szIccsStr) {
 
 static const char *const cszAdvertStr = "\r\n"
     "============================\r\n"
-    " »¶Ó­·ÃÎÊ¡¶ÏóÆå°Ù¿ÆÈ«ÊéÍø¡· \r\n"
-    " ÍÆ¼öÓÃ¡¶ÏóÆåÎ×Ê¦¡·¹ÛÉÍÆåÆ× \r\n"
+    " æ¬¢è¿è®¿é—®ã€Šè±¡æ£‹ç™¾ç§‘å…¨ä¹¦ç½‘ã€‹ \r\n"
+    " æ¨èç”¨ã€Šè±¡æ£‹å·«å¸ˆã€‹è§‚èµæ£‹è°± \r\n"
     "http://www.elephantbase.net/\r\n";
 
 bool PgnFileStruct::Read(const char *szFileName, bool bNoAdvert) {

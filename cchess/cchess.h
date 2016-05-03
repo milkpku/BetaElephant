@@ -38,15 +38,15 @@ uint64_t File2Chin(uint32_t dwFileStr, int sdPlayer);
 int File2Move(uint32_t dwFileStr, const PositionStruct &pos);
 uint32_t Move2File(int mv, const PositionStruct &pos);
 
-// ртобЁёа©╧Ф╤╗ак"TryMove()"╣д╥╣╩ьв╢л╛
-const int MOVE_ILLEGAL = 256;       // ╡╩╨о╥╗╣две╥╗
-const int MOVE_INCHECK = 128;       // рР╫╚╬Э╤Ь╡╩╨о╥╗╣две╥╗
-const int MOVE_DRAW = 64;           // ╨мфЕве╥╗(хт╠╩юМ╫Бн╙╨о╥╗╣дё╛обм╛)
-const int MOVE_PERPETUAL_LOSS = 32; // Ё╓╢Р╣джь╦╢ве╥╗
-const int MOVE_PERPETUAL_WIN = 16;  // ╤т╥╫Ё╓╢Р╣джь╦╢ве╥╗
-const int MOVE_PERPETUAL = 8;       // жь╦╢хЩ╢н╣две╥╗
-const int MOVE_MATE = 4;            // ╫╚кю(╟Эю╗ю╖╠п)
-const int MOVE_CHECK = 2;           // ╫╚╬Э
-const int MOVE_CAPTURE = 1;         // Ётвс
+// Д╩╔Д╦▀Е╦╦И┤▐Х╖└Е╝ Д╨├"TryMove()"Г └Х©■Е⌡·Г┼╤Ф─│
+const int MOVE_ILLEGAL = 256;       // Д╦█Е░┬ФЁ∙Г └Г²─ФЁ∙
+const int MOVE_INCHECK = 128;       // Е⌡═Е╟├Е├⌡Х─▄Д╦█Е░┬ФЁ∙Г └Г²─ФЁ∙
+const int MOVE_DRAW = 64;           // Е▓▄Фё▀Г²─ФЁ∙(Д╩█Х╒╚Г░├Х╖ёД╦╨Е░┬ФЁ∙Г └О╪▄Д╦▀Е░▄)
+const int MOVE_PERPETUAL_LOSS = 32; // И∙©Ф┴⌠Г └И┤█Е╓█Г²─ФЁ∙
+const int MOVE_PERPETUAL_WIN = 16;  // Е╞╧Ф√╧И∙©Ф┴⌠Г └И┤█Е╓█Г²─ФЁ∙
+const int MOVE_PERPETUAL = 8;       // И┤█Е╓█Д╦┴Ф╛║Г └Г²─ФЁ∙
+const int MOVE_MATE = 4;            // Е╟├Ф╜╩(Е▄┘Ф▀╛Е⌡╟Ф╞≥)
+const int MOVE_CHECK = 2;           // Е╟├Е├⌡
+const int MOVE_CAPTURE = 1;         // Е░┐Е╜░
 
 #endif
