@@ -26,7 +26,7 @@ int main(){
 	Node* present;
 	int pi, x;
 	double v;
-	while (1){ //继续循环条件
+	while (1){ //缁х画寰幆鏉′欢
 		present = root;
 		pathi.clear();
 		pathn.clear();

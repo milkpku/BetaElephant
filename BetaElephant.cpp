@@ -63,8 +63,8 @@ int Node::playRollout(){
 	while (1){
 		p.MakeMove(mv[ppi(pos2fen(&p), k, mv)]);
 		genMove(&p, k, mv);
-		if (k == 0){ //ÎŞ×Ó¿É×ß±»½«ËÀ
-			if (p.sdPlayer == player){ //×Ô¼º±»½«ËÀ
+		if (k == 0){ //æ— å­å¯èµ°è¢«å°†æ­»
+			if (p.sdPlayer == player){ //è‡ªå·±è¢«å°†æ­»
 				return 0;
 			}
 			else{

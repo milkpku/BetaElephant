@@ -3,14 +3,14 @@
 using namespace std;
 
 void psigma(const char *const szFen, const int N, const int *const moves, double *const ps);
-//szFenÊÇ¾ÖÃæµÄFen´®£¬NÊÇ×Å·¨ÊıÁ¿£¬moveÊÇ×Å·¨µÄÊı×é£¨³¤¶ÈÎªNµÄ×Å·¨Êı×é£©£¬ÒÔÉÏÊÇ²»¿ÉĞŞ¸ÄµÄÊäÈë
-//pÊÇ³¤¶ÈÎªNµÄ¸ÅÂÊÊı×é£¬Çë¶ÔÓ¦×Å·¨Êı×éµÄË³ĞòÊä³öÃ¿¸ö×Å·¨µÄpsigma
+//szFenæ˜¯å±€é¢çš„Fenä¸²ï¼ŒNæ˜¯ç€æ³•æ•°é‡ï¼Œmoveæ˜¯ç€æ³•çš„æ•°ç»„ï¼ˆé•¿åº¦ä¸ºNçš„ç€æ³•æ•°ç»„ï¼‰ï¼Œä»¥ä¸Šæ˜¯ä¸å¯ä¿®æ”¹çš„è¾“å…¥
+//pæ˜¯é•¿åº¦ä¸ºNçš„æ¦‚ç‡æ•°ç»„ï¼Œè¯·å¯¹åº”ç€æ³•æ•°ç»„çš„é¡ºåºè¾“å‡ºæ¯ä¸ªç€æ³•çš„psigma
 
 int ppi(const char *const szFen, const int N, const int *const moves);
-//ÊäÈëÀàËÆ£¬·µ»ØP×î´óµÄ×Å·¨µÄÏÂ±ê
+//è¾“å…¥ç±»ä¼¼ï¼Œè¿”å›Pæœ€å¤§çš„ç€æ³•çš„ä¸‹æ ‡
 
 double value(const char *const szFen);
-//¶ÔÊäÈëµÄFen´®£¬·µ»ØÆä¾ÖÃæÆÀ¼Ûv
+//å¯¹è¾“å…¥çš„Fenä¸²ï¼Œè¿”å›å…¶å±€é¢è¯„ä»·v
 
 void genMove(PositionStruct *pos, int K, int* mv){
 	int i, nTotal, nLegal;
@@ -44,8 +44,8 @@ public:
 	unsigned int* N; //visit count
 	Node** C; //children
 
-	int findMaxA(); //ÕÒµ½ÍêÈ«À©Õ¹NodeµÄ×îÓÅº¢×Ó
-	int findNew(); //ÕÒµ½Î´ÍêÈ«À©Õ¹NodeµÄÏÂÒ»¸öÀ©Õ¹µÄº¢×Ó
-	Node* genNode(int x); //Éú³ÉÀ©Õ¹µÄNode²¢³õÊ¼»¯
-	int playRollout(); //ÓÃppiÄ£Äâµ½×îºó·µ»ØÊ¤¸º£¬·µ»Ø0Îª¸º£¬1ÎªÊ¤
+	int findMaxA(); //æ‰¾åˆ°å®Œå…¨æ‰©å±•Nodeçš„æœ€ä¼˜å­©å­
+	int findNew(); //æ‰¾åˆ°æœªå®Œå…¨æ‰©å±•Nodeçš„ä¸‹ä¸€ä¸ªæ‰©å±•çš„å­©å­
+	Node* genNode(int x); //ç”Ÿæˆæ‰©å±•çš„Nodeå¹¶åˆå§‹åŒ–
+	int playRollout(); //ç”¨ppiæ¨¡æ‹Ÿåˆ°æœ€åè¿”å›èƒœè´Ÿï¼Œè¿”å›0ä¸ºè´Ÿï¼Œ1ä¸ºèƒœ
 };
