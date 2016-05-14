@@ -17,4 +17,14 @@ class Config(object):
     dtype=tf.float32
 
     # training
+    optimizer = tf.train.AdamOptimizer(1e-4)
+    n_epoch = 2000
+    minibatch_size = 128
+    evalue_point = 20
+    check_point = 200
+
+    # saving
+    save_path = 'train_log/model.ckpt'
+
+
 

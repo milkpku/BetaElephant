@@ -9,6 +9,12 @@ from config import Config
 import tensorflow as tf
 import functools
 
+class Model(object):
+    def __init__(self, x, y, loss, pred):
+        self.x = x
+        self.y = y
+        self.loss = loss
+        self.pred = pred
 
 def weight_variable(name, shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
@@ -55,32 +61,32 @@ def get_model(name):
         x = tf.concat(3, [x,x_branch], name=name('concate%d'%layer))
 
     x = conv_pip(name('conv5'), x)
+    x = tf.tanh(x, name=name('control_tanh'))
     z = tf.mul(tf.exp(x), x_ori)
-    z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name=name('partitial_function')) # partition function
+    z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name=name('partition_function')) # partition function
 
     # another formula of y*logy
     loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
+    z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
     pred = tf.div(z, z_sum, name=name('predict'))
-    return input_data, input_label, loss, pred
+    return Model(input_data, input_label, loss, pred)
 
 if __name__=='__main__':
 
-    x, y, loss, pred = get_model('test')
+    model = get_model('test')
     sess = tf.InteractiveSession()
     sess.run(tf.initialize_all_variables())
 
     import numpy as np
-    x_data = np.random.randint(1, size=[100,9,10,32]).astype('float32')
+    x_data = np.random.randint(2, size=[100,9,10,32]).astype('float32')
 
-    k = np.random.randint(9*10*32, size=100)
-    y_data = np.zeros([100, 9*10*32])
-    for i in range(100):
-        y_data[i,k[i]]=1
-    y_data =  np.reshape(y_data, [100, 9, 10, 32])
+    y_data = np.random.randint(2, size=[100,9,10,32]).astype('float32')
 
-    loss_val = loss.eval(feed_dict={x: x_data, y: y_data})
-    pred_val = pred.eval(feed_dict={x: x_data, y: y_data})
+    loss_val = model.loss.eval(feed_dict={model.x: x_data, model.y: y_data})
+    pred_val = model.pred.eval(feed_dict={model.x: x_data, model.y: y_data})
     print(loss_val)
-    print(pred_val)
+    #print(pred_val)
 
-    from IPython import embed;embed()
+    pred_val = pred_val.reshape(pred_val.shape[0], -1)
+    assert all(abs(pred_val.sum(axis=1)-1.0<1e-6))
+    print('model test OK')

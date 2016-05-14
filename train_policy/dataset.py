@@ -4,7 +4,7 @@
 #$Date: Sat May  7 10:59:24 2016
 #$Author: Like Ma <milkpku[at]gmail[dot]com>
 
-Class Dataset(object):
+class Dataset(object):
 
     def __init__(self, datafile_path):
         pass
