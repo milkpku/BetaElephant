@@ -99,13 +99,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   LocatePath(szLibEccoFile, cszLibEccoFile);
   if (!EccoApi.Startup(szLibEccoFile)) {
-    MessageBox(NULL, "Ã»ÓĞÕÒµ½ECCO.DLL£¡", "ECCO¿ª¾ÖĞÅÏ¢ÕûÀí¹¤¾ß", MB_ICONEXCLAMATION);
+    MessageBox(NULL, "æ²¡æœ‰æ‰¾åˆ°ECCO.DLLï¼", "ECCOå¼€å±€ä¿¡æ¯æ•´ç†å·¥å…·", MB_ICONEXCLAMATION);
     return 0;
   }
   bi.hwndOwner = NULL;
   bi.pidlRoot = NULL;
   bi.pszDisplayName = NULL;
-  bi.lpszTitle = "ÇëÑ¡Ôñ¿ÉÒÆÖ²ÆåÆ×(*.PGN)ËùÔÚµÄÎÄ¼ş¼Ğ";
+  bi.lpszTitle = "è¯·é€‰æ‹©å¯ç§»æ¤æ£‹è°±(*.PGN)æ‰€åœ¨çš„æ–‡ä»¶å¤¹";
   bi.ulFlags = BIF_RETURNONLYFSDIRS;
   bi.lpfn = NULL;
   bi.lParam = NULL;
@@ -115,7 +115,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     PreGenInit();
     ChineseInit();
     SearchFolder(szPath, EccoApi);
-    MessageBox(NULL, "È«²¿ÆåÆ×ÒÑ¼ÓÈëECCO¿ª¾ÖĞÅÏ¢¡£", "ECCO¿ª¾ÖĞÅÏ¢ÕûÀí¹¤¾ß", MB_ICONINFORMATION);
+    MessageBox(NULL, "å…¨éƒ¨æ£‹è°±å·²åŠ å…¥ECCOå¼€å±€ä¿¡æ¯ã€‚", "ECCOå¼€å±€ä¿¡æ¯æ•´ç†å·¥å…·", MB_ICONINFORMATION);
   }
   EccoApi.Shutdown();
   return 0;
