@@ -30,3 +30,6 @@
 #pycache
 *.pyc
 __pycache__
+
+#fen data
+*.fen
