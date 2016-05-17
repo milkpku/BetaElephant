@@ -10,8 +10,8 @@ import tensorflow as tf
 class Config(object):
 
     # dataset
-    data_shape = [None, 9, 10, 32]
-    label_shape = [None, 9, 10, 32]
+    data_shape = [None, 9, 10, 16]
+    label_shape = [None, 9, 10, 16]
 
     # model
     dtype=tf.float32

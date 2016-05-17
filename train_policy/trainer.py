@@ -34,16 +34,30 @@ def train(load_path=None):
         saver.restore(sess, load_path)
         print("Model restored from %s" % load_path)
 
+    # acurracy
+    pred = tf.reshape(model.pred, [-1])
+    label = tf.reshape(model.label, [-1])
+    correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(label,1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
     # train steps
     for i in range(Config.n_epoch):
+
         # training step
         batch_data, batch_label = train_data.next_batch(Config.minibatch_size)
-        sess.run(train_step, feed_dict={x:batch_data, y:batch_label})
+
+        input_dict = {model.label:batch_label}
+        for var, data in zip(model.inputs, batch_data):
+            input_dict[var]=data
+
+        sess.run(train_step, feed_dict=input_dict)
+
         # evalue step
         if (i+1)%Config.evalue_point == 0:
             batch_data, batch_label = val_data.next_batch(Config.minibatch_size)
             score = acurracy.eval(feed_dict={x:batch_data, y:batch_label})
             print("epoch %d, acurracy is %.2f" % (i,score))
+
         # save step
         if (i+1)%Config.check_point == 0:
             save_path = saver.save(sess, Config.save_path)

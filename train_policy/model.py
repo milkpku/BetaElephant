@@ -10,9 +10,9 @@ import tensorflow as tf
 import functools
 
 class Model(object):
-    def __init__(self, x, y, loss, pred):
-        self.x = x
-        self.y = y
+    def __init__(self, inputs, label, loss, pred):
+        self.inputs = inputs
+        self.label = label
         self.loss = loss
         self.pred = pred
 
@@ -40,10 +40,12 @@ def conv2d(name, x, out_channel, kernel, stride, nl=None):
 def get_model(name):
     name = functools.partial('{}-{}'.format, name)
 
-    input_data = tf.placeholder(Config.dtype, Config.data_shape, name='input_data')
+    self_pos = tf.placeholder(Config.dtype, Config.data_shape, name='self_pos')
+    self_ability = tf.placeholder(Config.dtype, Config.data_shape, name='self_ability')
+    enemy_pos = tf.placeholder(Config.dtype, Config.data_shape, name='enemy_pos')
     input_label = tf.placeholder(Config.dtype, Config.label_shape, name='input_label')
 
-    x = input_data
+    x = tf.concat(3, [self_pos, self_ability, enemy_pos], name=name('input_concat'))
     y = input_label
 
     nl = tf.nn.elu
@@ -55,21 +57,20 @@ def get_model(name):
         x = conv2d(name('1'), x, Config.data_shape[3], kernel=3, stride=1, nl=nl)
         return x
 
-    x_ori = x
     for layer in range(5):
         x_branch = conv_pip(name('conv%d'%layer), x)
         x = tf.concat(3, [x,x_branch], name=name('concate%d'%layer))
 
     x = conv_pip(name('conv5'), x)
     x = tf.tanh(x, name=name('control_tanh'))
-    z = tf.mul(tf.exp(x), x_ori)
+    z = tf.mul(tf.exp(x), self_ability)
     z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name=name('partition_function')) # partition function
 
     # another formula of y*logy
     loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
     z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
     pred = tf.div(z, z_sum, name=name('predict'))
-    return Model(input_data, input_label, loss, pred)
+    return Model([self_pos, self_ability, enemy_pos], input_label, loss, pred)
 
 if __name__=='__main__':
 
@@ -78,14 +79,18 @@ if __name__=='__main__':
     sess.run(tf.initialize_all_variables())
 
     import numpy as np
-    x_data = np.random.randint(2, size=[100,9,10,32]).astype('float32')
+    x_data = np.random.randint(2, size=[3,100,9,10,16]).astype('float32')
+    y_data = np.random.randint(2, size=[100,9,10,16]).astype('float32')
 
-    y_data = np.random.randint(2, size=[100,9,10,32]).astype('float32')
+    input_dict = {}
+    for var, data in zip(model.inputs, x_data):
+        input_dict[var] = data
+    input_dict[model.label] = y_data
 
-    loss_val = model.loss.eval(feed_dict={model.x: x_data, model.y: y_data})
-    pred_val = model.pred.eval(feed_dict={model.x: x_data, model.y: y_data})
+    loss_val = model.loss.eval(feed_dict=input_dict)
+    pred_val = model.pred.eval(feed_dict=input_dict)
     print(loss_val)
-    #print(pred_val)
+    # print(pred_val)
 
     pred_val = pred_val.reshape(pred_val.shape[0], -1)
     assert all(abs(pred_val.sum(axis=1)-1.0<1e-6))
