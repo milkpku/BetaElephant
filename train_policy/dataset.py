@@ -6,22 +6,20 @@
 
 import numpy as np
 
+OUT_TYPE = np.float32
+
 class Dataset(object):
 
     def __init__(self, datafile_path):
         self.file_object = open(datafile_path, 'r')    
-        # map chess piece to location, from left to right, from down to up, red is below
-        self.piecehash = ['A0','B0','C0','D0','E0','F0','G0','H0','I0','B2','H2','A3',
-                          'C3','E3','G3','I3','A6','C6','E6','G6','I6','B7','H7','A9',
-                          'B9','C9','D9','E9','F9','G9','H9','I9']
+        self.chesslayer = {}
 
-    def initphash(self):
-        self.piecehash = ['A0','B0','C0','D0','E0','F0','G0','H0','I0','B2','H2','A3',
-                          'C3','E3','G3','I3','A6','C6','E6','G6','I6','B7','H7','A9',
-                          'B9','C9','D9','E9','F9','G9','H9','I9']
-
-    def loc2piece(self, location):
-        return self.piecehash.index(location)
+    def init_clayer(self):
+        # king(帅)*1, advisor(仕)*2, bishop(象)*2, knight(马)*2
+        # rook(车)*2, cannon(炮)*2, pawn(兵)*5
+        # Upper: red      Lower: black
+        self.chesslayer = {'K':0, 'A':1, 'B':3, 'N':5, 'R':7, 'C':9, 'P':11,
+                           'k':0, 'a':1, 'b':3, 'n':5, 'r':7, 'c':9, 'p':11}
 
     def loca2i(self, loc):
         if (loc >= 'A' and loc <= 'Z'):
@@ -29,44 +27,80 @@ class Dataset(object):
         else:
             return int(loc)
 
-    def confen2mat(self, fen):
-        batchdata = np.zeros((9, 10, 32), dtype=float)
-        batchlabel = np.zeros((9, 10, 32), dtype=float)
+    def f2tpos(self, fen, frdpos, emypos):
+        self.init_clayer()
+        poslist = fen.split()[0].split('/')
+        for i in range(len(poslist)):
+            item = poslist[9 - i]
+            index = 0
+            for j in range(len(item)):
+                if item[j].isupper():
+                    frdpos[index][i][self.chesslayer[item[j]]] = 1
+                    self.chesslayer[item[j]] += 1
+                    index += 1
+                elif item[j].islower():
+                    emypos[index][i][self.chesslayer[item[j]]] = 1
+                    self.chesslayer[item[j]] += 1
+                    index += 1
+                else:
+                    index += int(item[j])
+        return frdpos, emypos
+
+    def f2tfrdmove(self, move, frdmove, frdpos):
+        movelist = move.split()
+        for item in movelist:
+            src = item.split('-')[0]
+            des = item.split('-')[1]
+            layer = np.argmax(frdpos[self.loca2i(src[0])][self.loca2i(src[1])])
+            frdmove[self.loca2i(des[0])][self.loca2i(des[1])][layer] = 1
+        return frdmove
+
+    def fen2tensor(self, fen):
+
+        frdpos = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+        frdmove = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+        emypos = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+        emymove = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+        movelabel = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+
         fenlist = fen.split('\t')
-        movelist = fenlist[1].split()
-        for move in movelist:
-            src = move.split('-')[0]
-            des = move.split('-')[1]
-            batchdata[self.loca2i(des[0])][self.loca2i(des[1])] \
-                     [self.loc2piece(src)]= 1
+        frdpos, emypos = self.f2tpos(fenlist[0], frdpos, emypos)
+        frdmove = self.f2tfrdmove(fenlist[1], frdmove, frdpos)
+
         label = fenlist[2].strip().split('-')
-        # print label
-        batchlabel[self.loca2i(label[1][0])][self.loca2i(label[1][1])]\
-                  [self.loc2piece(label[0])]= 1
-        if label[1] in self.piecehash:
-            self.piecehash[self.piecehash.index(label[1])] = '00'
-        self.piecehash[self.loc2piece(label[0])] = label[1]
-        return batchdata, batchlabel
+        layer = np.argmax(frdpos[self.loca2i(label[0][0])][self.loca2i(label[0][1])])
+        movelabel[self.loca2i(label[1][0])][self.loca2i(label[1][1])][layer] = 1
+
+        if fenlist[0][1] == 'b':
+            # Rotate
+            pass
+
+
+        # shuffle   random
+
+        return frdpos, frdmove, emypos, movelabel
 
     def next_batch(self, batch_size):
         '''
         return [data, label] with batched size
         '''
-        batchdata = np.zeros((batch_size, 9, 10, 32), dtype=float) 
-        batchlabel = np.zeros((batch_size, 9, 10, 32), dtype=float)
+        frdpos = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE) 
+        frdmove = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
+        emypos = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
+        emymove = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
+        movelabel = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
+
         for i in range(batch_size):
             line = self.file_object.readline()
             if line != '':
                 if line[-5:-1] == 'WIN!':
-                    self.initphash()
                     i -= 1
                     continue
             else:
                 self.file_object.seek(0, 0)
-                self.initphash()
                 line = self.file_object.readline()
-            batchdata[i], batchlabel[i] = self.confen2mat(line)
-        return batchdata, batchlabel
+            frdpos[i], frdmove[i], emypos[i], movelabel[i] = self.fen2tensor(line)
+        return [frdpos, frdmove, emypos], movelabel
 
 def load_data(data_name):
     '''
@@ -76,20 +110,21 @@ def load_data(data_name):
     return data
 
 def visualdata(data):
+    print '------------------------'
     for i in range(data.shape[2]):
-        print "%d :" % (i)
+        print i
         for j in range(data.shape[1]):
             for k in range(data.shape[0]):
-                print int(data[k][j][i]),
+                print int(data[k][9 - j][i]),
             print '\n',
         print '\n'
-    print '\n'
+    print '------------------------\n'
 
 
 if __name__ == '__main__':
     traindata = load_data('../data/out.temp')
     for i in range(1):
-        batch_data, batch_label = traindata.next_batch(10)
-        visualdata(batch_data[0])
-        visualdata(batch_data[2])
-
+        [frdpos, frdmove, emypos], movelabel = traindata.next_batch(1)
+        visualdata(frdpos[0])
+        visualdata(frdmove[0])
+        visualdata(emypos[0])
