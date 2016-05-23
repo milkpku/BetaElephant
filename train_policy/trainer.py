@@ -35,8 +35,8 @@ def train(load_path=None):
         print("Model restored from %s" % load_path)
 
     # accuracy
-    pred = tf.reshape(model.pred, [-1])
-    label = tf.reshape(model.label, [-1])
+    pred = tf.reshape(model.pred, [-1, 9*10*16])
+    label = tf.reshape(model.label, [-1, 9*10*16])
     correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(label,1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
@@ -58,12 +58,12 @@ def train(load_path=None):
             val_dict = {model.label:batch_label}
             for var, data in zip(model.inputs, batch_data):
                 val_dict[var]=data
-                score = accuracy.eval(feed_dict=val_dict)
+            score = accuracy.eval(feed_dict=val_dict)
             print("epoch %d, accuracy is %.2f" % (i,score))
 
         # save step
         if (i+1)%Config.check_point == 0:
-            save_path = saver.save(sess, Config.save_path)
+            save_path = saver.save(sess, "%s/epoch-%d" %(Config.save_path, i))
             print("Model saved in file: %s" % save_path)
 
 if __name__=='__main__':

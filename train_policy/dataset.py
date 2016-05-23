@@ -119,7 +119,7 @@ class Dataset(object):
             return int(loc)
 
     def __switch_round(self, mat):
-        for j in range(mat.shape[1]/2):
+        for j in range(mat.shape[1]//3):
             for k in range(mat.shape[2]):
                 temp = copy.deepcopy(mat[:,j,k])
                 mat[:,j,k] = mat[:,mat.shape[0]-j,k]

@@ -1,4 +1,3 @@
-
 #!/usr/bin/python3
 #-*-coding:utf-8-*-
 #$File: config.py
@@ -24,7 +23,7 @@ class Config(object):
     check_point = 200
 
     # saving
-    save_path = 'train_log/model.ckpt'
+    save_path = 'train_log'
 
 
 

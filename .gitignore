@@ -35,3 +35,6 @@ __pycache__
 
 #fen data
 *.fen
+
+#train_log
+train_log
