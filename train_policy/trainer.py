@@ -55,8 +55,8 @@ def train(load_path=None):
         # evalue step
         if (i+1)%Config.evalue_point == 0:
             batch_data, batch_label = val_data.next_batch(Config.minibatch_size)
-            score = acurracy.eval(feed_dict={x:batch_data, y:batch_label})
-            print("epoch %d, acurracy is %.2f" % (i,score))
+            score = accuracy.eval(feed_dict={x:batch_data, y:batch_label})
+            print("epoch %d, accuracy is %.2f" % (i,score))
 
         # save step
         if (i+1)%Config.check_point == 0:
