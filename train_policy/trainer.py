@@ -26,7 +26,7 @@ def train(load_path=None):
     train_step = optimizer.minimize(model.loss)
 
     # init session and server
-    sess = tf.Session()
+    sess = tf.InteractiveSession()
     saver = tf.train.Saver()
     if load_path==None:
         sess.run(tf.initialize_all_variables())
@@ -34,7 +34,7 @@ def train(load_path=None):
         saver.restore(sess, load_path)
         print("Model restored from %s" % load_path)
 
-    # acurracy
+    # accuracy
     pred = tf.reshape(model.pred, [-1])
     label = tf.reshape(model.label, [-1])
     correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(label,1))
@@ -55,7 +55,10 @@ def train(load_path=None):
         # evalue step
         if (i+1)%Config.evalue_point == 0:
             batch_data, batch_label = val_data.next_batch(Config.minibatch_size)
-            score = accuracy.eval(feed_dict={x:batch_data, y:batch_label})
+            val_dict = {model.label:batch_label}
+            for var, data in zip(model.inputs, batch_data):
+                val_dict[var]=data
+                score = accuracy.eval(feed_dict=val_dict)
             print("epoch %d, accuracy is %.2f" % (i,score))
 
         # save step

@@ -15,9 +15,9 @@ class Dataset(object):
 
     def __init__(self, path, _type):
         if _type == 'train':
-            self.__file_object = open(path + '/train', 'r')
-        if _type == 'valid':
-            self.__file_object = open(path + '/valid', 'r')
+            self.__file_object = open(path + '/train.fen', 'r')
+        if _type == 'validation':
+            self.__file_object = open(path + '/valid.fen', 'r')
         self.__chesslayer = {}
 
     def __init_clayer(self):
@@ -149,11 +149,11 @@ class Dataset(object):
         args.append(seq)
         return args
 
-def load_data(data_path, _type):
+def load_data(_type):
     '''
     return dataset which yeild minibatch data
     '''
-    data = Dataset(data_path, _type)
+    data = Dataset('../data', _type)
     return data
 
 def visualdata(data):
