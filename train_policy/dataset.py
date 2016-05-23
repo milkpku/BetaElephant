@@ -13,8 +13,11 @@ OUT_TYPE = np.float32
 
 class Dataset(object):
 
-    def __init__(self, datafile_path):
-        self.__file_object = open(datafile_path, 'r')
+    def __init__(self, path, _type):
+        if _type == 'train':
+            self.__file_object = open(path + '/train', 'r')
+        if _type == 'valid':
+            self.__file_object = open(path + '/valid', 'r')
         self.__chesslayer = {}
 
     def __init_clayer(self):
@@ -146,11 +149,11 @@ class Dataset(object):
         args.append(seq)
         return args
 
-def load_data(data_name):
+def load_data(data_path, _type):
     '''
     return dataset which yeild minibatch data
     '''
-    data = Dataset(data_name)
+    data = Dataset(data_path, _type)
     return data
 
 def visualdata(data):
