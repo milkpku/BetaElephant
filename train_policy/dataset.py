@@ -157,15 +157,15 @@ def load_data(data_path, _type):
     return data
 
 def visualdata(data):
-    print '------------------------'
+    print('------------------------')
     for i in range(data.shape[2]):
-        print i
+        print(i)
         for j in range(data.shape[1]):
             for k in range(data.shape[0]):
-                print int(data[k][9 - j][i]),
-            print '\n',
-        print '\n'
-    print '------------------------\n'
+                print(int(data[k][9 - j][i])),
+            print('\n'),
+        print('\n')
+    print('------------------------\n')
 
 
 if __name__ == '__main__':
