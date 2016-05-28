@@ -119,11 +119,12 @@ class Dataset(object):
             return int(loc)
 
     def __switch_round(self, mat):
-        for j in range(mat.shape[1]//3):
-            for k in range(mat.shape[2]):
-                temp = copy.deepcopy(mat[:,j,k])
-                mat[:,j,k] = mat[:,mat.shape[0]-j,k]
-                mat[:,mat.shape[0]-j,k] = temp
+        mat = mat[:,::-1,:]
+        #for j in range(mat.shape[1]//2):
+        #    for k in range(mat.shape[2]):
+        #        temp = copy.deepcopy(mat[:,j,k])
+        #        mat[:,j,k] = mat[:,mat.shape[0]-j,k]
+        #        mat[:,mat.shape[0]-j,k] = temp
 
     def __shuffle(self, mat, args):
         index = [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12,13,14,15]]
