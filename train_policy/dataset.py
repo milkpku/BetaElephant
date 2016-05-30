@@ -37,16 +37,17 @@ class Dataset(object):
         emymove = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
         movelabel = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
 
-        for i in range(batch_size):
+        i = 0
+        while(i < batch_size):
             line = self.__file_object.readline()
             if line != '':
                 if line[-5:-1] == 'WIN!':
-                    i -= 1
                     continue
             else:
                 self.__file_object.seek(0, 0)
                 line = self.__file_object.readline()
             frdpos[i], frdmove[i], emypos[i], movelabel[i] = self.__fen2tensor(line)
+            i += 1
         return [frdpos, frdmove, emypos], movelabel
 
     def __fen2tensor(self, fen):
@@ -171,7 +172,8 @@ def visualdata(data):
 
 if __name__ == '__main__':
     traindata = load_data('train')
-    for i in range(22):
+
+    for i in range(10):
         [frdpos, frdmove, emypos], movelabel = traindata.next_batch(10)
         if 0:
             visualdata(frdpos[0])
