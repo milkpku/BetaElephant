@@ -12,14 +12,17 @@ import tensorflow as tf
 
 import argparse
 
-def train(load_path=None):
+def train(args):
 
+    device = args.device
+    load_path = args.load_path
     # load data
     train_data = load_data('train')
     val_data = load_data('validation')
 
     # load model
-    model = get_model('train')
+    with tf.device('/gpu:%d' % device):
+        model = get_model('train')
 
     # trainer init
     optimizer = Config.optimizer
@@ -74,5 +77,4 @@ if __name__=='__main__':
     parser.add_argument("-c", "--load_path", default=None, help="load trained model")
     args = parser.parse_args()
 
-    with tf.device('/gpu:%d' % args.device):
-        train(args.load_path)
+    train(args)
