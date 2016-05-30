@@ -22,7 +22,7 @@ def get_model(name):
     x = tf.concat(3, [self_pos, self_ability, enemy_pos], name=name('input_concat'))
     y = input_label
 
-    nl = tf.nn.elu
+    nl = tf.nn.tanh
 
     def conv_pip(name, x):
         name = functools.partial('{}_{}'.format, name)
@@ -44,7 +44,7 @@ def get_model(name):
     loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
     z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
     pred = tf.div(z, z_sum, name=name('predict'))
-    return Model([self_pos, self_ability, enemy_pos], input_label, loss, pred)
+    return Model([self_pos, self_ability, enemy_pos], input_label, loss, pred, debug=z)
 
 if __name__=='__main__':
 

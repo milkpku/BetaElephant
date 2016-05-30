@@ -8,11 +8,12 @@ import tensorflow as tf
 import functools
 
 class Model(object):
-    def __init__(self, inputs, label, loss, pred):
+    def __init__(self, inputs, label, loss, pred, debug=None):
         self.inputs = inputs
         self.label = label
         self.loss = loss
         self.pred = pred
+        self.debug = debug
 
 def weight_variable(name, shape):
     initial = tf.truncated_normal(shape, stddev=0.1)

@@ -35,6 +35,7 @@ __pycache__
 
 #fen data
 *.fen
+*.bak
 
 #train_log
 train_log

@@ -17,10 +17,10 @@ class Config(object):
 
     # training
     optimizer = tf.train.AdamOptimizer(1e-4)
-    n_epoch = 2000
+    n_epoch = 200000
     minibatch_size = 128
     evalue_point = 2
-    check_point = 200
+    check_point = 2000
 
     # saving
     save_path = 'train_log'

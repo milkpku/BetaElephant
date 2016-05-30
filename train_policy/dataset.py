@@ -170,10 +170,16 @@ def visualdata(data):
 
 
 if __name__ == '__main__':
-    traindata = load_data('../data/out.temp')
+    traindata = load_data('train')
     for i in range(22):
         [frdpos, frdmove, emypos], movelabel = traindata.next_batch(10)
         if 0:
             visualdata(frdpos[0])
             visualdata(frdmove[0])
             visualdata(emypos[0])
+
+    for i in range(200):
+        [frdpos, frdmove, emypos], movelabel = traindata.next_batch(100)
+        frdmove = frdmove.reshape(frdmove.shape[0], -1)
+        frdmove = frdmove.sum(axis=1)
+        assert all(frdmove!=0), print(i, np.argwhere(frdmove==0))

@@ -50,6 +50,7 @@ def train(load_path=None):
         for var, data in zip(model.inputs, batch_data):
             input_dict[var]=data
 
+        #from IPython import embed;embed()
         sess.run(train_step, feed_dict=input_dict)
 
         # evalue step
@@ -69,7 +70,9 @@ def train(load_path=None):
 if __name__=='__main__':
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--device", type=int, default=0, help="gpu id")
     parser.add_argument("-c", "--load_path", default=None, help="load trained model")
     args = parser.parse_args()
 
-    train(args.load_path)
+    with tf.device('/gpu:%d' % args.device):
+        train(args.load_path)
