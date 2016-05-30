@@ -22,9 +22,8 @@ def Reactor(object):
         return the final states and reward
         '''
         # flip the state
-        self_pos = states[1]
+        enemy_pos, self_pos = change_state(states, move)
         self_pos = self_pos[:,:,::-1,:]
-        enemy_pos = states[0]
         enemy_pos = enemy_pos[:,:,::-1,:]
         self_move = valid_move([self_pos, enemy_pos])
 
@@ -42,7 +41,8 @@ def Reactor(object):
         pred = self.sess.run(self.player.pred, feed_dict=input_dict)
 
         # change state
-        next_self_pos, next_enemy_pos = change_state(input_data[0], input_data[2], pred)
+        current_move = pred
+        next_self_pos, next_enemy_pos = change_state([input_data[0], input_data[2]], current_move)
         # switch palyer
         next_mask_self_pos = next_enemy_pos[:, :, ::-1, :]
         next_mask_enemy_pos = next_self_pos[:, :, ::-1, :]
@@ -71,4 +71,7 @@ def valid_move(states):
 
     return valid_moves.shape = [None, 9, 10, 32]
     '''
+    pass
+
+def change_state(states, move):
     pass

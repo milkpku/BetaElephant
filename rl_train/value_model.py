@@ -10,14 +10,16 @@ import functools
 from util.model import Model, conv2d
 from config import Config
 
-def get_model(name):
+def get_value_model(name):
     name = functools.partial('{}-{}'.format, name)
 
     self_pos = tf.placeholder(Config.dtype, Config.data_shape, name='self_pos')
     self_ability = tf.placeholder(Config.dtype, Config.data_shape, name='self_ability')
     enemy_pos = tf.placeholder(Config.dtype, Config.data_shape, name='enemy_pos')
+    self_play = tf.placeholder(Config.dtype, Config.data_shape, name='self_play')
 
     x = tf.concat(3, [self_pos, self_ability, enemy_pos], name=name('input_concat'))
+    y = self_play
 
     nl = tf.nn.tanh
 
@@ -36,12 +38,12 @@ def get_model(name):
     pred = tf.sigmoid(x, name=name('control_sigmoid'))
     pred = tf.mul(pred, self_ability, name=name('valid_moves'))
 
-    # another formula of y*logy
-    return Model([self_pos, self_ability, enemy_pos], None, None, pred)
+    q_value = tf.reduce_max(tf.mul(pred, self_play), reduction_indices=[1,2,3]
 
+    return Model([self_pos, self_ability, enemy_pos], self_play, q_value, pred)
 
 if __name__=="__main__":
-    model = get_model('test')
+    model = get_value_model('test')
     sess = tf.InteractiveSession()
     sess.run(tf.initialize_all_variables())
 
