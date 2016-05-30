@@ -1,28 +1,27 @@
 #!/usr/bin/python3
 #-*-coding:utf-8-*-
-#$File: model.py
-#$Date: Sat May  7 10:59:45 2016
+#$File: value_model.py
+#$Date: Fri May 27 12:03:55 2016
 #$Author: Like Ma <milkpku[at]gmail[dot]com>
-
-from config import Config
 
 import tensorflow as tf
 import functools
 
 from util.model import Model, conv2d
+from config import Config
 
-def get_model(name):
+def get_value_model(name):
     name = functools.partial('{}-{}'.format, name)
 
     self_pos = tf.placeholder(Config.dtype, Config.data_shape, name='self_pos')
     self_ability = tf.placeholder(Config.dtype, Config.data_shape, name='self_ability')
     enemy_pos = tf.placeholder(Config.dtype, Config.data_shape, name='enemy_pos')
-    input_label = tf.placeholder(Config.dtype, Config.label_shape, name='input_label')
+    self_play = tf.placeholder(Config.dtype, Config.data_shape, name='self_play')
 
     x = tf.concat(3, [self_pos, self_ability, enemy_pos], name=name('input_concat'))
-    y = input_label
+    y = self_play
 
-    nl = tf.nn.elu
+    nl = tf.nn.tanh
 
     def conv_pip(name, x):
         name = functools.partial('{}_{}'.format, name)
@@ -36,36 +35,26 @@ def get_model(name):
         x = tf.concat(3, [x,x_branch], name=name('concate%d'%layer))
 
     x = conv_pip(name('conv5'), x)
-    x = tf.tanh(x, name=name('control_tanh'))
-    z = tf.mul(tf.exp(x), self_ability)
-    z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name=name('partition_function')) # partition function
+    pred = tf.sigmoid(x, name=name('control_sigmoid'))
+    pred = tf.mul(pred, self_ability, name=name('valid_moves'))
 
-    # another formula of y*logy
-    loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
-    z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
-    pred = tf.div(z, z_sum, name=name('predict'))
-    return Model([self_pos, self_ability, enemy_pos], input_label, loss, pred)
+    q_value = tf.reduce_max(tf.mul(pred, self_play), reduction_indices=[1,2,3]
 
-if __name__=='__main__':
+    return Model([self_pos, self_ability, enemy_pos], self_play, q_value, pred)
 
-    model = get_model('test')
+if __name__=="__main__":
+    model = get_value_model('test')
     sess = tf.InteractiveSession()
     sess.run(tf.initialize_all_variables())
 
     import numpy as np
     x_data = np.random.randint(2, size=[3,100,9,10,16]).astype('float32')
-    y_data = np.random.randint(2, size=[100,9,10,16]).astype('float32')
 
     input_dict = {}
     for var, data in zip(model.inputs, x_data):
         input_dict[var] = data
-    input_dict[model.label] = y_data
 
-    loss_val = model.loss.eval(feed_dict=input_dict)
     pred_val = model.pred.eval(feed_dict=input_dict)
-    print(loss_val)
-    # print(pred_val)
 
-    pred_val = pred_val.reshape(pred_val.shape[0], -1)
-    assert all(abs(pred_val.sum(axis=1)-1.0<1e-6))
+    print(pred_val)
     print('model test OK')
