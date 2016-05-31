@@ -37,18 +37,17 @@ class Dataset(object):
         emymove = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
         movelabel = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
 
-        i = 0
-        while(i < batch_size):
+        for i in range(batch_size):
             line = self.__file_object.readline()
             if line != '':
-                if line.split('\t')[2] == 'WIN!':
+                if line[-5:-1] == 'WIN!':
+                    i -= 1
                     continue
             else:
                 self.__file_object.seek(0, 0)
                 line = self.__file_object.readline()
-            frdpos[i], frdmove[i], emypos[i], emymove[i], movelabel[i] = self.__fen2tensor(line)
-            i += 1
-        return [frdpos, frdmove, emypos, emymove], movelabel
+            frdpos[i], frdmove[i], emypos[i], movelabel[i] = self.__fen2tensor(line)
+        return [frdpos, frdmove, emypos], movelabel
 
     def __fen2tensor(self, fen):
 
@@ -60,13 +59,11 @@ class Dataset(object):
 
         fenlist = fen.split('\t')
         frdpos, emypos = self.__f2tpos(fenlist[0], frdpos, emypos)
-        frdmove = self.__f2tmove(fenlist[1], frdmove, frdpos)
-        emymove = self.__f2tmove(fenlist[3], emymove, emypos)
+        frdmove = self.__f2tfrdmove(fenlist[1], frdmove, frdpos)
 
         label = fenlist[2].strip().split('-')
         layer = np.argmax(frdpos[self.__loca2i(label[0][0])][self.__loca2i(label[0][1])])
         movelabel[self.__loca2i(label[1][0])][self.__loca2i(label[1][1])][layer] = 1
-        
 
         if fenlist[0].split()[1] == 'b':
             self.__switch_round(frdpos)
@@ -78,7 +75,7 @@ class Dataset(object):
         self.__shuffle([frdpos, frdmove, movelabel], self.__shuffle_args())
         self.__shuffle([emypos], self.__shuffle_args())
 
-        return frdpos, frdmove, emypos, emymove, movelabel
+        return frdpos, frdmove, emypos, movelabel
 
     def __f2tpos(self, fen, frdpos, emypos):
         self.__init_clayer()
@@ -106,14 +103,14 @@ class Dataset(object):
                     index += int(item[j])
         return frdpos, emypos
 
-    def __f2tmove(self, movelist, move, pos):
-        movelist = movelist.split()
+    def __f2tfrdmove(self, move, frdmove, frdpos):
+        movelist = move.split()
         for item in movelist:
             src = item.split('-')[0]
             des = item.split('-')[1]
-            layer = np.argmax(pos[self.__loca2i(src[0])][self.__loca2i(src[1])])
-            move[self.__loca2i(des[0])][self.__loca2i(des[1])][layer] = 1
-        return move
+            layer = np.argmax(frdpos[self.__loca2i(src[0])][self.__loca2i(src[1])])
+            frdmove[self.__loca2i(des[0])][self.__loca2i(des[1])][layer] = 1
+        return frdmove
 
     def __loca2i(self, loc):
         if loc.isupper():
@@ -123,6 +120,11 @@ class Dataset(object):
 
     def __switch_round(self, mat):
         mat = mat[:,::-1,:]
+        #for j in range(mat.shape[1]//2):
+        #    for k in range(mat.shape[2]):
+        #        temp = copy.deepcopy(mat[:,j,k])
+        #        mat[:,j,k] = mat[:,mat.shape[0]-j,k]
+        #        mat[:,mat.shape[0]-j,k] = temp
 
     def __shuffle(self, mat, args):
         index = [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12,13,14,15]]
@@ -152,7 +154,7 @@ def load_data(_type):
     '''
     return dataset which yeild minibatch data
     '''
-    data = Dataset('../data', _type)
+    data = Dataset('../../data', _type)
     return data
 
 def visualdata(data):
@@ -169,9 +171,8 @@ def visualdata(data):
 
 if __name__ == '__main__':
     traindata = load_data('train')
-
-    for i in range(10):
-        [frdpos, frdmove, emypos, emymove], movelabel = traindata.next_batch(10)
+    for i in range(22):
+        [frdpos, frdmove, emypos], movelabel = traindata.next_batch(10)
         if 0:
             visualdata(frdpos[0])
             visualdata(frdmove[0])

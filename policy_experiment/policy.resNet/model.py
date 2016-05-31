@@ -31,12 +31,13 @@ def get_model(name):
         x = conv2d(name('1'), x, Config.data_shape[3], kernel=3, stride=1, nl=nl)
         return x
 
+    pred = conv_pip(name('conv0'), x)
     for layer in range(5):
-        x_branch = conv_pip(name('conv%d'%layer), x)
-        x = tf.concat(3, [x,x_branch], name=name('concate%d'%layer))
+        pred_branch = tf.concat(3, [pred,x], name=name('concate%d'%layer))
+        pred += conv_pip(name('conv%d'%(layer+1)), pred_branch)
 
-    x = conv_pip(name('conv5'), x)
-    x = tf.tanh(x, name=name('control_tanh'))
+    x = tf.tanh(pred, name=name('control_tanh'))
+
     z = tf.mul(tf.exp(x), self_ability)
     z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name=name('partition_function')) # partition function
 

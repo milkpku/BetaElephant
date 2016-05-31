@@ -24,7 +24,7 @@ def get_model(name):
 
     nl = tf.nn.tanh
 
-    def conv_pip(name, x):
+    def conv_pip(name, x, nl):
         name = functools.partial('{}_{}'.format, name)
 
         x = conv2d(name('0'), x, Config.data_shape[3]*2, kernel=3, stride=1, nl=nl)
@@ -32,19 +32,18 @@ def get_model(name):
         return x
 
     for layer in range(5):
-        x_branch = conv_pip(name('conv%d'%layer), x)
+        x_branch = conv_pip(name('conv%d'%layer), x, nl)
         x = tf.concat(3, [x,x_branch], name=name('concate%d'%layer))
 
-    x = conv_pip(name('conv5'), x)
-    x = tf.tanh(x, name=name('control_tanh'))
-    z = tf.mul(tf.exp(x), self_ability)
-    z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name=name('partition_function')) # partition function
+    x = conv_pip(name('conv5'), x, nl=None)
+    pred = tf.sigmoid(x)
 
     # another formula of y*logy
-    loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
-    z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
-    pred = tf.div(z, z_sum, name=name('predict'))
-    return Model([self_pos, self_ability, enemy_pos], input_label, loss, pred, debug=z)
+    loss = -tf.log(tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]))
+    loss += - 0.1 * tf.log(tf.reduce_sum(tf.mul(x, self_ability), reduction_indices=[1,2,3]))
+    pred = tf.mul(pred, self_ability)
+
+    return Model([self_pos, self_ability, enemy_pos], input_label, loss, pred)
 
 if __name__=='__main__':
 
