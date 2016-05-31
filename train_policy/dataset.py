@@ -41,14 +41,14 @@ class Dataset(object):
         while(i < batch_size):
             line = self.__file_object.readline()
             if line != '':
-                if line[-5:-1] == 'WIN!':
+                if line.split('\t')[2] == 'WIN!':
                     continue
             else:
                 self.__file_object.seek(0, 0)
                 line = self.__file_object.readline()
-            frdpos[i], frdmove[i], emypos[i], movelabel[i] = self.__fen2tensor(line)
+            frdpos[i], frdmove[i], emypos[i], emymove[i], movelabel[i] = self.__fen2tensor(line)
             i += 1
-        return [frdpos, frdmove, emypos], movelabel
+        return [frdpos, frdmove, emypos, emymove], movelabel
 
     def __fen2tensor(self, fen):
 
@@ -60,11 +60,13 @@ class Dataset(object):
 
         fenlist = fen.split('\t')
         frdpos, emypos = self.__f2tpos(fenlist[0], frdpos, emypos)
-        frdmove = self.__f2tfrdmove(fenlist[1], frdmove, frdpos)
+        frdmove = self.__f2tmove(fenlist[1], frdmove, frdpos)
+        emymove = self.__f2tmove(fenlist[3], emymove, emypos)
 
         label = fenlist[2].strip().split('-')
         layer = np.argmax(frdpos[self.__loca2i(label[0][0])][self.__loca2i(label[0][1])])
         movelabel[self.__loca2i(label[1][0])][self.__loca2i(label[1][1])][layer] = 1
+        
 
         if fenlist[0].split()[1] == 'b':
             self.__switch_round(frdpos)
@@ -76,7 +78,7 @@ class Dataset(object):
         self.__shuffle([frdpos, frdmove, movelabel], self.__shuffle_args())
         self.__shuffle([emypos], self.__shuffle_args())
 
-        return frdpos, frdmove, emypos, movelabel
+        return frdpos, frdmove, emypos, emymove, movelabel
 
     def __f2tpos(self, fen, frdpos, emypos):
         self.__init_clayer()
@@ -104,14 +106,14 @@ class Dataset(object):
                     index += int(item[j])
         return frdpos, emypos
 
-    def __f2tfrdmove(self, move, frdmove, frdpos):
-        movelist = move.split()
+    def __f2tmove(self, movelist, move, pos):
+        movelist = movelist.split()
         for item in movelist:
             src = item.split('-')[0]
             des = item.split('-')[1]
-            layer = np.argmax(frdpos[self.__loca2i(src[0])][self.__loca2i(src[1])])
-            frdmove[self.__loca2i(des[0])][self.__loca2i(des[1])][layer] = 1
-        return frdmove
+            layer = np.argmax(pos[self.__loca2i(src[0])][self.__loca2i(src[1])])
+            move[self.__loca2i(des[0])][self.__loca2i(des[1])][layer] = 1
+        return move
 
     def __loca2i(self, loc):
         if loc.isupper():
@@ -121,11 +123,6 @@ class Dataset(object):
 
     def __switch_round(self, mat):
         mat = mat[:,::-1,:]
-        #for j in range(mat.shape[1]//2):
-        #    for k in range(mat.shape[2]):
-        #        temp = copy.deepcopy(mat[:,j,k])
-        #        mat[:,j,k] = mat[:,mat.shape[0]-j,k]
-        #        mat[:,mat.shape[0]-j,k] = temp
 
     def __shuffle(self, mat, args):
         index = [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12,13,14,15]]
@@ -173,7 +170,7 @@ def visualdata(data):
 if __name__ == '__main__':
     traindata = load_data('train')
     for i in range(10):
-        [frdpos, frdmove, emypos], movelabel = traindata.next_batch(10)
+        [frdpos, frdmove, emypos, emymove], movelabel = traindata.next_batch(10)
         if 0:
             visualdata(frdpos[0])
             visualdata(frdmove[0])
