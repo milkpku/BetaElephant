@@ -171,7 +171,7 @@ def visualdata(data):
 
 
 if __name__ == '__main__':
-    traindata = load_data('train')
+    traindata = load_data('validation')
 
     for i in range(10):
         [frdpos, frdmove, emypos], movelabel = traindata.next_batch(10)
@@ -180,8 +180,17 @@ if __name__ == '__main__':
             visualdata(frdmove[0])
             visualdata(emypos[0])
 
-    for i in range(200):
+    for i in range(10):
         [frdpos, frdmove, emypos], movelabel = traindata.next_batch(100)
+        # from IPython import embed; embed()
+        # assert no empty moves
         frdmove = frdmove.reshape(frdmove.shape[0], -1)
         frdmove = frdmove.sum(axis=1)
         assert all(frdmove!=0), print(i, np.argwhere(frdmove==0))
+        # assert no piece in the same layer
+        frdpos = frdpos.reshape(frdpos.shape[0]*90, -1)
+        frdpos = frdpos.sum(axis=1)
+        assert all(frdpos < 2), print(i, np.argwhere(frdpos>1))
+        emypos = emypos.reshape(emypos.shape[0]*90, -1)
+        emypos = emypos.sum(axis=1)
+        assert all(emypos < 2), print(i, np.argwhere(emypos>1))

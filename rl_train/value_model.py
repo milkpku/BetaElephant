@@ -16,6 +16,7 @@ def get_value_model(name):
     self_pos = tf.placeholder(Config.dtype, Config.data_shape, name='self_pos')
     self_ability = tf.placeholder(Config.dtype, Config.data_shape, name='self_ability')
     enemy_pos = tf.placeholder(Config.dtype, Config.data_shape, name='enemy_pos')
+
     self_play = tf.placeholder(Config.dtype, Config.data_shape, name='self_play')
 
     x = tf.concat(3, [self_pos, self_ability, enemy_pos], name=name('input_concat'))
@@ -38,7 +39,7 @@ def get_value_model(name):
     pred = tf.sigmoid(x, name=name('control_sigmoid'))
     pred = tf.mul(pred, self_ability, name=name('valid_moves'))
 
-    q_value = tf.reduce_max(tf.mul(pred, self_play), reduction_indices=[1,2,3]
+    q_value = tf.reduce_max(tf.mul(pred, self_play), reduction_indices=[1,2,3])
 
     return Model([self_pos, self_ability, enemy_pos], self_play, q_value, pred)
 
