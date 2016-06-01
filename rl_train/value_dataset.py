@@ -5,17 +5,17 @@
 #$Author: Like Ma <milkpku[at]gmail[dot]com>
 
 import tensorflow as tf
-from config import Config
 
-def batch_flatten(ndarry):
-    return ndarry.reshape(ndarry.shape[0], -1)
+from util.tools import batch_flatten
 
-def Reactor(object):
+from config import config
+
+class Reactor(object):
     def __init__(self, policy_model, load_path):
         self.player = policy_model
         self.sess = tf.Session()
-        self.saver = tf.train.Saver()
-        self.saver.restore(sees, load_path)
+        saver = tf.train.Saver()
+        saver.restore(self.sess, load_path)
 
     def react(self, states, move):
         '''
@@ -71,7 +71,7 @@ def valid_move(states):
 
     return valid_moves.shape = [None, 9, 10, 32]
     '''
-    pass
+    return states[1]
 
 def change_state(states, move):
-    pass
+    return states

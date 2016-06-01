@@ -13,11 +13,11 @@ from config import Config
 def get_value_model(name):
     name = functools.partial('{}-{}'.format, name)
 
-    self_pos = tf.placeholder(Config.dtype, Config.data_shape, name='self_pos')
-    self_ability = tf.placeholder(Config.dtype, Config.data_shape, name='self_ability')
-    enemy_pos = tf.placeholder(Config.dtype, Config.data_shape, name='enemy_pos')
+    self_pos = tf.placeholder(Config.dtype, Config.data_shape, name=name('self_pos'))
+    self_ability = tf.placeholder(Config.dtype, Config.data_shape, name=name('self_ability'))
+    enemy_pos = tf.placeholder(Config.dtype, Config.data_shape, name=name('enemy_pos'))
 
-    self_play = tf.placeholder(Config.dtype, Config.data_shape, name='self_play')
+    self_play = tf.placeholder(Config.dtype, Config.data_shape, name=name('self_play'))
 
     x = tf.concat(3, [self_pos, self_ability, enemy_pos], name=name('input_concat'))
     y = self_play
@@ -41,7 +41,7 @@ def get_value_model(name):
 
     q_value = tf.reduce_max(tf.mul(pred, self_play), reduction_indices=[1,2,3])
 
-    return Model([self_pos, self_ability, enemy_pos], self_play, q_value, pred)
+    return Model([self_pos, enemy_pos, self_ability], self_play, q_value, pred)
 
 if __name__=="__main__":
     model = get_value_model('test')
