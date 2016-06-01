@@ -66,12 +66,28 @@ class Reactor(object):
 def valid_move(states):
     '''
     states = [self_pos, enemy_pos]
-    self_pos.shape = [None, 9, 10, 32]
-    enemy_pos.shape = [None, 9, 10, 32]
+    self_pos.shape = [None, 9, 10, 16]
+    enemy_pos.shape = [None, 9, 10, 16]
 
-    return valid_moves.shape = [None, 9, 10, 32]
+    return valid_moves.shape = [None, 9, 10, 16]
     '''
     return states[1]
 
 def change_state(states, move):
-    return states
+    '''
+    states = [self_pos, enemy_pos]
+    self_pos.shape = [None, 9, 10, 16]
+    enemy_pos.shape = [None, 9, 10, 16]
+
+    return valid_moves.shape = [None, 9, 10, 16]
+    '''
+    move = np.argmax(batch_flatten(move), axis=1)
+    rows, cols, layers = np.unravel_index(move, [9, 10, 16])
+
+    self_pos = states[0]
+    self_pos[np.arange(len(move)), :, :, layers] = 0
+    self_pos[np.arange(len(move)), rows, cols, layers] = 1
+    enemy_pos = states[1]
+    enemy_pos[np.arange(len(move)), rows, cols, :] = 0
+
+    return [self_pos, enemy_pos]

@@ -11,7 +11,6 @@ from model import get_model
 import tensorflow as tf
 
 import argparse
-import logging
 
 def train(args):
 
@@ -44,7 +43,6 @@ def train(args):
     correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(label,1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-    logging.basicConfig(filename='log.txt', level=logging.DEBUG)
     # train steps
     for i in range(Config.n_epoch):
 
@@ -66,13 +64,11 @@ def train(args):
                 val_dict[var]=data
             score = accuracy.eval(feed_dict=val_dict)
             print("epoch %d, accuracy is %.2f" % (i,score))
-            logging.info("epoch %d, accuracy is %.2f" % (i,score))
 
         # save step
         if (i+1)%Config.check_point == 0:
             save_path = saver.save(sess, "%s/epoch-%d" %(Config.save_path, i))
             print("Model saved in file: %s" % save_path)
-            logging.info("Model saved in file: %s" % save_path)
 
 if __name__=='__main__':
 
