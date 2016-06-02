@@ -33,12 +33,7 @@ def get_model(name):
         x = conv2d(name('1'), x, Config.data_shape[3], kernel=3, stride=1, nl=nl)
         return x
 
-    for layer in range(5):
-        x_branch = conv_pip(name('conv%d'%layer), x)
-        x = tf.concat(3, [x,x_branch], name=name('concate%d'%layer))
-
-    x = conv_pip(name('conv5'), x)
-    x = tf.tanh(x, name=name('control_tanh'))
+    x = conv_pip(name('convpip'), x)
     z = tf.mul(tf.exp(x), self_ability)
     z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name=name('partition_function')) # partition function
 
@@ -55,7 +50,7 @@ if __name__=='__main__':
     sess.run(tf.initialize_all_variables())
 
     import numpy as np
-    x_data = np.random.randint(2, size=[3,100,9,10,16]).astype('float32')
+    x_data = np.random.randint(2, size=[4,100,9,10,16]).astype('float32')
     y_data = np.random.randint(2, size=[100,9,10,16]).astype('float32')
 
     input_dict = {}
