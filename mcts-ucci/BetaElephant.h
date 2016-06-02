@@ -1,5 +1,7 @@
 #include <vector>
 #include "eleeye/position.h"
+#include "float.h"
+#include "math.h"
 using namespace std;
 
 void psigma(const char *const szFen, const int N, const int *const moves, double *const ps);
