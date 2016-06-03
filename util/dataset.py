@@ -32,9 +32,11 @@ class Dataset(object):
         return [data, label] with batched size
         '''
         frdpos = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
-        frdmove = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
         emypos = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
+        frdmove = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
         emymove = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
+        frdprot = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
+        emyprot = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
         movelabel = np.zeros((batch_size, 9, 10, 16), dtype=OUT_TYPE)
 
         i = 0
@@ -46,23 +48,28 @@ class Dataset(object):
             else:
                 self.__file_object.seek(0, 0)
                 line = self.__file_object.readline()
-            frdpos[i], frdmove[i], emypos[i], emymove[i], movelabel[i] = self.__fen2tensor(line)
+            frdpos[i], emypos[i], frdmove[i], emymove[i], frdprot[i], emyprot[i], movelabel[i] = self.__fen2tensor(line)
             i += 1
         # return [frdpos, frdmove, emypos, emymove], movelabel
-        return [frdpos, emypos, frdmove], movelabel
+        # return [frdpos, frdmove, emypos, emyprot], movelabel
+        return [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel
 
     def __fen2tensor(self, fen):
 
         frdpos = np.zeros((9, 10, 16), dtype=OUT_TYPE)
-        frdmove = np.zeros((9, 10, 16), dtype=OUT_TYPE)
         emypos = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+        frdmove = np.zeros((9, 10, 16), dtype=OUT_TYPE)
         emymove = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+        frdprot = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+        emyprot = np.zeros((9, 10, 16), dtype=OUT_TYPE)
         movelabel = np.zeros((9, 10, 16), dtype=OUT_TYPE)
 
         fenlist = fen.split('\t')
         frdpos, emypos = self.__f2tpos(fenlist[0], frdpos, emypos)
         frdmove = self.__f2tmove(fenlist[1], frdmove, frdpos)
         emymove = self.__f2tmove(fenlist[3], emymove, emypos)
+        frdprot = self.__f2tmove(fenlist[4], frdprot, frdpos)
+        emyprot = self.__f2tmove(fenlist[5], emyprot, emypos)
 
         label = fenlist[2].strip().split('-')
         layer = np.argmax(frdpos[self.__loca2i(label[0][0])][self.__loca2i(label[0][1])])
@@ -79,7 +86,7 @@ class Dataset(object):
         self.__shuffle([frdpos, frdmove, movelabel], self.__shuffle_args())
         self.__shuffle([emypos], self.__shuffle_args())
 
-        return frdpos, frdmove, emypos, emymove, movelabel
+        return frdpos, emypos, frdmove, emymove, frdprot, emyprot, movelabel
 
     def __f2tpos(self, fen, frdpos, emypos):
         self.__init_clayer()
@@ -149,7 +156,7 @@ class Dataset(object):
         args.append(seq)
         return args
 
-def load_data(_type, name):
+def load_data(_type):
     '''
     return dataset which yeild minibatch data
     '''
@@ -172,15 +179,19 @@ if __name__ == '__main__':
     traindata = load_data('validation')
 
     for i in range(10):
-        [frdpos, frdmove, emypos, emymove], movelabel = traindata.next_batch(10)
+        [frdpos, emypos, frdmov, emymove, frdprot, emyprot], movelabel = traindata.next_batch(10)
         if 0:
             visualdata(frdpos[0])
             visualdata(frdmove[0])
             visualdata(emypos[0])
 
     for i in range(10):
-        [frdpos, frdmove, emypos], movelabel = traindata.next_batch(100)
+        [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel = traindata.next_batch(100)
         # from IPython import embed; embed()
+        # assert all protected pieces are selfpieces
+        assert all((frdprot.sum(axis=3)*frdpos.sum(axis=3)==frdprot.sum(axis=3)).reshape(-1))
+        assert all((emyprot.sum(axis=3)*emypos.sum(axis=3)==emyprot.sum(axis=3)).reshape(-1))
+
         # assert no empty moves
         frdmove = frdmove.reshape(frdmove.shape[0], -1)
         frdmove = frdmove.sum(axis=1)
@@ -192,3 +203,4 @@ if __name__ == '__main__':
         emypos = emypos.reshape(emypos.shape[0]*90, -1)
         emypos = emypos.sum(axis=1)
         assert all(emypos < 2), print(i, np.argwhere(emypos>1))
+
