@@ -5,6 +5,7 @@
 #$Author: Like Ma <milkpku[at]gmail[dot]com>
 
 import tensorflow as tf
+import numpy as np
 import functools
 
 class Model(object):
@@ -35,3 +36,20 @@ def conv2d(name, x, out_channel, kernel, stride, nl=None):
     y = y + b
     # nonlinearty
     return nl(y) if nl else y
+
+def fc_layer(name, x, in_shape, out_shape, nl=None):
+    name = functools.partial('{}-{}'.format, name)
+
+    in_chanel = np.prod(in_shape)
+    out_chanel = np.prod(out_shape)
+    # W
+    W = weight_variable(name('W'), [in_chanel, out_chanel])
+    # b
+    b = bias_variable(name('b'), [out_chanel])
+    # fc
+    x = tf.reshape(x, [-1, in_chanel])
+    x = tf.matmul(x, W) + b
+    out_shape = [-1] + out_shape
+    x = tf.reshape(x, out_shape)
+
+    return nl(x) if nl else x

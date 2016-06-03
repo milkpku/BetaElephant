@@ -50,9 +50,9 @@ class Dataset(object):
                 line = self.__file_object.readline()
             frdpos[i], emypos[i], frdmove[i], emymove[i], frdprot[i], emyprot[i], movelabel[i] = self.__fen2tensor(line)
             i += 1
-        return [frdpos, emypos, frdmove], movelabel
-        # return [frdpos, frdmove, emypos, emyprot], movelabel
-        # return [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel
+        # return [frdpos, frdmove, emypos, emymove], movelabel
+        return [frdpos, emypos, frdmove, emyprot], movelabel
+        #return [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel
 
     def __fen2tensor(self, fen):
 

@@ -14,12 +14,16 @@ from util.model import Model, conv2d
 def get_model(name):
     name = functools.partial('{}-{}'.format, name)
 
-    self_pos = tf.placeholder(Config.dtype, Config.data_shape, name='self_pos')
-    enemy_pos = tf.placeholder(Config.dtype, Config.data_shape, name='enemy_pos')
-    self_ability = tf.placeholder(Config.dtype, Config.data_shape, name='self_ability')
-    input_label = tf.placeholder(Config.dtype, Config.label_shape, name='input_label')
+    self_pos = tf.placeholder(Config.dtype, Config.data_shape, name=name('self_pos'))
+    enemy_pos = tf.placeholder(Config.dtype, Config.data_shape, name=name('enemy_pos'))
+    self_ability = tf.placeholder(Config.dtype, Config.data_shape, name=name('self_ability'))
+    enemy_ability = tf.placeholder(Config.dtype, Config.data_shape, name=name('enemy_ability'))
+    self_protect = tf.placeholder(config.dtype, config.data_shape, name='self_protect')
+    enemy_protect = tf.placeholder(config.dtype, config.data_shape, name='enemy_protect')
 
-    x = tf.concat(3, [self_pos, enemy_pos, self_ability], name=name('input_concat'))
+    input_label = tf.placeholder(Config.dtype, Config.label_shape, name=name('input_label'))
+
+    x = tf.concat(3, [self_pos, enemy_pos, self_ability, enemy_ability, self_protect, enemy_protect], name=name('input_concat'))
     y = input_label
 
     nl = tf.nn.tanh
@@ -31,12 +35,13 @@ def get_model(name):
         x = conv2d(name('1'), x, Config.data_shape[3], kernel=3, stride=1, nl=nl)
         return x
 
+    pred = conv_pip(name('conv0'), x)
     for layer in range(5):
-        x_branch = conv_pip(name('conv%d'%layer), x)
-        x = tf.concat(3, [x,x_branch], name=name('concate%d'%layer))
+        pred_branch = tf.concat(3, [pred,x], name=name('concate%d'%layer))
+        pred += conv_pip(name('conv%d'%(layer+1)), pred_branch)
 
-    x = conv_pip(name('conv5'), x)
-    x = tf.tanh(x, name=name('control_tanh'))
+    x = tf.tanh(pred, name=name('control_tanh'))
+
     z = tf.mul(tf.exp(x), self_ability)
     z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name=name('partition_function')) # partition function
 
@@ -44,7 +49,7 @@ def get_model(name):
     loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
     z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
     pred = tf.div(z, z_sum, name=name('predict'))
-    return Model([self_pos, enemy_pos, self_ability], input_label, loss, pred, debug=z)
+    return Model([self_pos, enemy_pos, self_ability, enemy_ability, self_protect, enemy_protect], input_label, loss, pred, debug=z)
 
 if __name__=='__main__':
 
@@ -53,7 +58,7 @@ if __name__=='__main__':
     sess.run(tf.initialize_all_variables())
 
     import numpy as np
-    x_data = np.random.randint(2, size=[3,100,9,10,16]).astype('float32')
+    x_data = np.random.randint(2, size=[4,100,9,10,16]).astype('float32')
     y_data = np.random.randint(2, size=[100,9,10,16]).astype('float32')
 
     input_dict = {}

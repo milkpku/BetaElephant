@@ -15,13 +15,13 @@ def get_model(name):
     name = functools.partial('{}-{}'.format, name)
 
     self_pos = tf.placeholder(Config.dtype, Config.data_shape, name='self_pos')
-    self_ability = tf.placeholder(Config.dtype, Config.data_shape, name='self_ability')
     enemy_pos = tf.placeholder(Config.dtype, Config.data_shape, name='enemy_pos')
+    self_ability = tf.placeholder(Config.dtype, Config.data_shape, name='self_ability')
     enemy_ability = tf.placeholder(Config.dtype, Config.data_shape, name='enemy_ability')
 
     input_label = tf.placeholder(Config.dtype, Config.label_shape, name='input_label')
 
-    x = tf.concat(3, [self_pos, self_ability, enemy_pos, enemy_ability], name=name('input_concat'))
+    x = tf.concat(3, [self_pos, enemy_pos, self_ability, enemy_ability], name=name('input_concat'))
     y = input_label
 
     nl = tf.nn.tanh
@@ -46,7 +46,7 @@ def get_model(name):
     loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
     z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
     pred = tf.div(z, z_sum, name=name('predict'))
-    return Model([self_pos, self_ability, enemy_pos, enemy_ability], input_label, loss, pred, debug=z)
+    return Model([self_pos, enemy_pos, self_ability, enemy_ability], input_label, loss, pred, debug=z)
 
 if __name__=='__main__':
 
@@ -55,7 +55,7 @@ if __name__=='__main__':
     sess.run(tf.initialize_all_variables())
 
     import numpy as np
-    x_data = np.random.randint(2, size=[3,100,9,10,16]).astype('float32')
+    x_data = np.random.randint(2, size=[4,100,9,10,16]).astype('float32')
     y_data = np.random.randint(2, size=[100,9,10,16]).astype('float32')
 
     input_dict = {}
