@@ -23,7 +23,7 @@ def train(args):
 
     # load model
     with tf.device('/gpu:%d' % device):
-        model = get_model('policy')
+        model = get_model('train')
 
     # trainer init
     optimizer = Config.optimizer

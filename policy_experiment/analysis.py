@@ -11,7 +11,7 @@ def load_log_file(file_path):
 
     return accuarcy
 
-def smooth(array, window=20):
+def smooth(array, window=250):
     count = 0
     for i in range(1, window):
         count += array[i:i-window]
