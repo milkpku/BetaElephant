@@ -51,8 +51,8 @@ class Dataset(object):
             frdpos[i], emypos[i], frdmove[i], emymove[i], frdprot[i], emyprot[i], movelabel[i] = self.__fen2tensor(line)
             i += 1
         # return [frdpos, frdmove, emypos, emymove], movelabel
-        # return [frdpos, frdmove, emypos, emyprot], movelabel
         return [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel
+        #return [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel
 
     def __fen2tensor(self, fen):
 
