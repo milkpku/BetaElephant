@@ -1,0 +1,1 @@
+g++ eleeye/eleeye.cpp BetaElephant.cpp MonteCarlo.cpp eleeye/position.cpp base/pipe.cpp base/wsockbas.cpp eleeye/book.cpp eleeye/evaluate.cpp eleeye/genmoves.cpp eleeye/hash.cpp eleeye/movesort.cpp eleeye/preeval.cpp eleeye/search.cpp eleeye/pregen.cpp eleeye/ucci.cpp -o BetaElephant -O2 -fopenmp
