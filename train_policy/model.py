@@ -12,44 +12,43 @@ import functools
 from util.model import Model, conv2d
 
 def get_model(name):
-    name = functools.partial('{}-{}'.format, name)
+    with tf.name_scope(name) as scope:
 
-    self_pos = tf.placeholder(config.dtype, config.data_shape, name=name('self_pos'))
-    enemy_pos = tf.placeholder(config.dtype, config.data_shape, name=name('enemy_pos'))
-    self_ability = tf.placeholder(config.dtype, config.data_shape, name=name('self_ability'))
-    enemy_ability = tf.placeholder(config.dtype, config.data_shape, name=name('enemy_ability'))
-    self_protect = tf.placeholder(config.dtype, config.data_shape, name='self_protect')
-    enemy_protect = tf.placeholder(config.dtype, config.data_shape, name='enemy_protect')
+        self_pos = tf.placeholder(config.dtype, config.data_shape, name='self_pos')
+        enemy_pos = tf.placeholder(config.dtype, config.data_shape, name='enemy_pos')
+        self_ability = tf.placeholder(config.dtype, config.data_shape, name='self_ability')
+        enemy_ability = tf.placeholder(config.dtype, config.data_shape, name='enemy_ability')
+        self_protect = tf.placeholder(config.dtype, config.data_shape, name='self_protect')
+        enemy_protect = tf.placeholder(config.dtype, config.data_shape, name='enemy_protect')
 
-    input_label = tf.placeholder(config.dtype, config.label_shape, name=name('input_label'))
+        input_label = tf.placeholder(config.dtype, config.label_shape, name='input_label')
 
-    x = tf.concat(3, [self_pos, enemy_pos, self_ability, enemy_ability, self_protect, enemy_protect], name=name('input_concat'))
-    y = input_label
+        x = tf.concat(3, [self_pos, enemy_pos, self_ability, enemy_ability, self_protect, enemy_protect], name='input_concat')
+        y = input_label
 
-    nl = tf.nn.tanh
+        nl = tf.nn.tanh
 
-    def conv_pip(name, x):
-        name = functools.partial('{}_{}'.format, name)
+        def conv_pip(name, x):
+            with tf.name_scope(name) as scope:
+                x = conv2d('0', x, config.data_shape[3]*2, kernel=3, stride=1, nl=nl)
+                x = conv2d('1', x, config.data_shape[3], kernel=3, stride=1, nl=nl)
+            return x
 
-        x = conv2d(name('0'), x, config.data_shape[3]*2, kernel=3, stride=1, nl=nl)
-        x = conv2d(name('1'), x, config.data_shape[3], kernel=3, stride=1, nl=nl)
-        return x
+        pred = conv_pip('conv0', x)
+        for layer in range(5):
+            pred_branch = tf.concat(3, [pred,x], name='concate%d'%layer)
+            pred += conv_pip('conv%d'%(layer+1), pred_branch)
 
-    pred = conv_pip(name('conv0'), x)
-    for layer in range(5):
-        pred_branch = tf.concat(3, [pred,x], name=name('concate%d'%layer))
-        pred += conv_pip(name('conv%d'%(layer+1)), pred_branch)
+        x = tf.tanh(pred, name='control_tanh')
 
-    x = tf.tanh(pred, name=name('control_tanh'))
+        z = tf.mul(tf.exp(x), self_ability)
+        z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name='partition_function') # partition function
 
-    z = tf.mul(tf.exp(x), self_ability)
-    z_sum = tf.reduce_sum(z, reduction_indices=[1,2,3], name=name('partition_function')) # partition function
-
-    # another formula of y*logy
-    loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
-    z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
-    pred = tf.div(z, z_sum, name=name('predict'))
-    return Model([self_pos, enemy_pos, self_ability, enemy_ability, self_protect, enemy_protect], input_label, loss, pred, debug=z)
+        # another formula of y*logy
+        loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
+        z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
+        pred = tf.div(z, z_sum, name='predict')
+        return Model([self_pos, enemy_pos, self_ability, enemy_ability, self_protect, enemy_protect], input_label, loss, pred, debug=z)
 
 if __name__=='__main__':
 
@@ -61,7 +60,7 @@ if __name__=='__main__':
     x_data = np.random.randint(2, size=[4,100,9,10,16]).astype('float32')
     y_data = np.random.randint(2, size=[100,9,10,16]).astype('float32')
 
-    train_writer = tf.train.SummaryWriter('train/', sess.graph)
+    train_writer = tf.train.SummaryWriter('train_log/', sess.graph)
 
     input_dict = {}
     for var, data in zip(model.inputs, x_data):
