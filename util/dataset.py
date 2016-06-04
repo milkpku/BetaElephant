@@ -80,7 +80,10 @@ class Dataset(object):
             self.__switch_round(frdpos)
             self.__switch_round(frdmove)
             self.__switch_round(emypos)
+            self.__switch_round(emymove)
             self.__switch_round(movelabel)
+            self.__switch_round(frdprot)
+            self.__switch_round(emyprot)
 
         # shuffle   random
         self.__shuffle([frdpos, frdmove, movelabel], self.__shuffle_args())
