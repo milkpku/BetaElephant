@@ -20,11 +20,15 @@ def smooth(array, window=250):
 
 
 if __name__=='__main__':
-    watch_list = ['policy.add-both',
-            'policy.add-enemymove',
-            'policy.add-enemyprot',
-            #'policy.fast-policy',
-            'policy.add-frd-emy-x-move-prot'
+    watch_list = [
+            #'policy.orign',
+            #'policy.add-enemymove',
+            #'policy.add-enemyprot',
+            'policy.add-all',
+            'policy.fast-policy',
+            'policy.resNet.add-all',
+            'policy.pip.add-all',
+            'policy.fc.add-all'
             ]
 
     plot_list = []
@@ -36,6 +40,11 @@ if __name__=='__main__':
         plot_list.append(f)
 
     plt.legend(plot_list, watch_list, loc=4)
+    plt.xlim(xmin=0, xmax=10000)
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+
+    # plt.title('Validation Accuracy for Different Feature')
+    plt.title('Validation Accuracy for Different Model')
+
     plt.show()
-
-

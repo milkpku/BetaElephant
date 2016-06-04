@@ -29,6 +29,3 @@ if __name__=='__main__':
     args = parser.parse_args()
 
     export_input_graph(args.model_folder)
-
-
-
