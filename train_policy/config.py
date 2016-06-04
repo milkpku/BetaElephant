@@ -25,5 +25,4 @@ class Config(object):
     # saving
     save_path = 'train_log'
 
-
-
+config = Config()
