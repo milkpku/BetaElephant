@@ -57,7 +57,7 @@ if __name__=='__main__':
     sess.run(tf.initialize_all_variables())
 
     import numpy as np
-    x_data = np.random.randint(2, size=[4,100,9,10,16]).astype('float32')
+    x_data = np.random.randint(2, size=[6,100,9,10,16]).astype('float32')
     y_data = np.random.randint(2, size=[100,9,10,16]).astype('float32')
 
     train_writer = tf.train.SummaryWriter('train_log/', sess.graph)
