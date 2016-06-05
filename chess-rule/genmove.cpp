@@ -1,4 +1,4 @@
-#include "../mcts-ucci/BetaElephant.h"
+#include "../mcts-xboard/BetaElephant.h"
 #include <iostream>
 #include <time.h>
 #include <boost/python.hpp>
