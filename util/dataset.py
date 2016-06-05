@@ -85,9 +85,9 @@ class Dataset(object):
             self.__switch_round(frdprot)
             self.__switch_round(emyprot)
 
-        # shuffle   random
-        self.__shuffle([frdpos, frdmove, movelabel], self.__shuffle_args())
-        self.__shuffle([emypos], self.__shuffle_args())
+        # shuffle random
+        self.__shuffle([frdpos, frdmove, frdprot, movelabel], self.__shuffle_args())
+        self.__shuffle([emypos, emymove, emyprot], self.__shuffle_args())
 
         return frdpos, emypos, frdmove, emymove, frdprot, emyprot, movelabel
 
@@ -199,6 +199,7 @@ if __name__ == '__main__':
         frdmove = frdmove.reshape(frdmove.shape[0], -1)
         frdmove = frdmove.sum(axis=1)
         assert all(frdmove!=0), print(i, np.argwhere(frdmove==0))
+
         # assert no piece in the same layer
         frdpos = frdpos.reshape(frdpos.shape[0]*90, -1)
         frdpos = frdpos.sum(axis=1)
