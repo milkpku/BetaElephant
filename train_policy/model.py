@@ -48,7 +48,7 @@ def get_model(name):
         loss = -tf.reduce_sum(tf.mul(x, y), reduction_indices=[1,2,3]) + tf.log(z_sum)
         z_sum = tf.reshape(z_sum, [-1, 1, 1, 1])
         pred = tf.div(z, z_sum, name='predict')
-        return Model([self_pos, enemy_pos, self_ability, enemy_ability, self_protect, enemy_protect], input_label, loss, pred, debug=z)
+        return Model([self_pos, enemy_pos, self_ability, enemy_ability, self_protect, enemy_protect], input_label, loss, pred, debug=[z, z_sum])
 
 if __name__=='__main__':
 
@@ -69,9 +69,12 @@ if __name__=='__main__':
 
     loss_val = model.loss.eval(feed_dict=input_dict)
     pred_val = model.pred.eval(feed_dict=input_dict)
-    print(loss_val)
-    # print(pred_val)
+    # print(loss_val)
+    print(pred_val)
 
     pred_val = pred_val.reshape(pred_val.shape[0], -1)
     assert all(abs(pred_val.sum(axis=1)-1.0<1e-6))
+
+    self_ability = x_data[2].reshape(x_data[2].shape[0], -1)
+    assert all(np.logical_xor(self_ability>0, pred_val<=0).reshape(-1))
     print('model test OK')

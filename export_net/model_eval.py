@@ -36,22 +36,25 @@ class Evaluer(object):
         pred = self.model.pred.eval(feed_dict=input_dict)
 
         # accuracy
-        pred = pred.reshape([-1, 9*10*16])
-        label = label.reshape([-1, 9*10*16])
+        pred_flat = pred.reshape([-1, 9*10*16])
+        label_flat = label.reshape([-1, 9*10*16])
 
-        accuracy = np.mean(pred.argmax(axis=1)==label.argmax(axis=1))
+        accuracy = np.mean(pred_flat.argmax(axis=1)==label_flat.argmax(axis=1))
 
         # topN
         topN = 0
-        for prob, ind in zip(pred, label.argmax(axis=1)):
+        for prob, ind in zip(pred_flat, label_flat.argmax(axis=1)):
             v = prob[ind]
-            prob.sort()
-            if v >= prob[-N]:
+            tmp = np.copy(prob)
+            tmp.sort()
+            if v >= tmp[-N]:
                 topN += 1
 
         topN /= len(pred)
 
         print('accuracy %.2f, top%d %.2f' % (accuracy, N, topN))
+
+        return data, label, pred
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
@@ -61,6 +64,11 @@ if __name__=='__main__':
 
     evaluer = Evaluer(args.model_folder, args.checkpoint_file)
 
-    for i in range(10):
-        evaluer.evalue_topN(100, 3)
+    #for i in range(10):
+    #    evaluer.evalue_topN(100, 3)
 
+    data, label, pred = evaluer.evalue_topN(100,3)
+    import pickle
+    fh = open('pred.tensor', 'wb')
+    pickle.dump([data, label, pred], fh)
+    fh.close()

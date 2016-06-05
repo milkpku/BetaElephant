@@ -58,7 +58,7 @@ if __name__=='__main__':
     sess.run(tf.initialize_all_variables())
 
     import numpy as np
-    x_data = np.random.randint(2, size=[4,100,9,10,16]).astype('float32')
+    x_data = np.random.randint(2, size=[6,100,9,10,16]).astype('float32')
     y_data = np.random.randint(2, size=[100,9,10,16]).astype('float32')
 
     input_dict = {}
@@ -68,9 +68,12 @@ if __name__=='__main__':
 
     loss_val = model.loss.eval(feed_dict=input_dict)
     pred_val = model.pred.eval(feed_dict=input_dict)
-    print(loss_val)
-    # print(pred_val)
+    # print(loss_val)
+    print(pred_val)
 
     pred_val = pred_val.reshape(pred_val.shape[0], -1)
     assert all(abs(pred_val.sum(axis=1)-1.0<1e-6))
+
+    self_ability = x_data[2].reshape(x_data[2].shape[0], -1)
+    assert all(np.logical_xor(self_ability>0, pred_val<=0).reshape(-1))
     print('model test OK')

@@ -43,3 +43,6 @@ log.txt
 
 #tensorflow graph
 *.pb
+
+#tensor data
+#*.tensor
