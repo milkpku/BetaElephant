@@ -96,7 +96,7 @@ class Dataset(object):
         poslist = fen.split()[0].split('/')
         player = fen.split()[1]
         for i in range(len(poslist)):
-            item = poslist[9 - i]
+            item = poslist[i]
             index = 0
             for j in range(len(item)):
                 if item[j].isupper():
