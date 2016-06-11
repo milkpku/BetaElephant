@@ -82,7 +82,7 @@ if __name__ == '__main__':
     file = '../pred.tensor'
     fh = open(file, 'rb')
     data, label, pred = pickle.load(fh)
-   
+     
     state = tensor2state(data[0][1],data[1][1])
     fen = state2fen(state)
     from IPython import embed;embed()
@@ -90,11 +90,11 @@ if __name__ == '__main__':
     visualstate(state)
     print(fen)
     
-    frdmove = data[0]
-    emymove = data[1]
+    frdpos = data[0]
+    emypos = data[1]
     fenlist = []
-    for k in range(frdmove.shape[0]):
-        fenlist.append(tensor2fen(frdmove[k],emymove[k]))
+    for k in range(frdpos.shape[0]):
+        fenlist.append(tensor2fen(frdpos[k],emypos[k]))
     #print(fenlist)
     label = tensor2fen(label[1],label[1])
     #print(label)
