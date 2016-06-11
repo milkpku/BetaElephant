@@ -10,7 +10,7 @@ import genmove
 
 OUT_TYPE = np.float32
 chesslayer = {'K':0, 'A':1, 'B':3, 'N':5, 'R':7, 'C':9, 'P':11,
-                     'k':0, 'a':1, 'b':3, 'n':5, 'r':7, 'c':9, 'p':11}
+              'k':0, 'a':1, 'b':3, 'n':5, 'r':7, 'c':9, 'p':11}
 
 
 def gentensor(selfpos, emypos):
@@ -21,18 +21,10 @@ def gentensor(selfpos, emypos):
     '''
     _fen = tensor2fen(selfpos, emypos)
     fen = tensor2fen(selfpos, emypos)
-    print(fen)
-
     move = genmove.gen(_fen)
-
     fen = fen + '\t' + move.replace('\n','\t')
-    print(fen)
-
     selfpos, emypos, selfmove, emymove, selfprot, emyprot, movelabel = fen2tensor(fen)
-
-
     return [selfmove, emymove, selfprot, emyprot]
-
 
 
 def fen2tensor(fen):
