@@ -16,7 +16,7 @@ from value_model import get_value_model
 from policy_model import get_model
 
 def train_value():
-    policy_model = get_model('train')
+    policy_model = get_model('policy')
 
     environ = Reactor(policy_model, 'train_log/epoch-399')
     value_model = get_value_model('value')
@@ -28,15 +28,16 @@ def train_value():
 
     value_pred = value_model.pred
 
-    dataset = load_data('train', ['self_pos', 'enemy_pos', 'self_move'])
+    dataset = load_data('train')
     info, label = dataset.next_batch(config.minibatch_size)
-    move = info[2]
     state = info[:2]
+    move = info[2]
+    params = info[3:]
     # for loop, choose move and react, then train
     while True:
         # get state transfer
         input_dict = {}
-        for var, data in zip(value_model.inputs, state +[move]):
+        for var, data in zip(value_model.inputs, state +[move]+params):
             input_dict[var] = data
         from IPython import embed; embed()
         pred = sess.run(value_pred, feed_dict=input_dict)
@@ -45,11 +46,11 @@ def train_value():
         else:
             choose_move = batch_max_to_onehot(np.random.random(pred.shape))
 
-        reward, next_state, if_terminated, next_move = environ.react(state, choose_move)
+        reward, next_state, if_terminated, next_move, next_params = environ.react(state, choose_move)
 
         # calculate reward
         next_dict = {}
-        for var, data in zip(value_model.inputs, next_state + [next_move]):
+        for var, data in zip(value_model.inputs, next_state + [next_move]+next_params):
             next_dict[var] = data[np.logic_not(if_terminated)]
         next_pred = sess.run(value_pred, feed_dict=next_dict)
         next_max = next_pred.reshape(next_pred.shape[0]).max(axis=1)
@@ -63,13 +64,16 @@ def train_value():
         # refresh data
         state = next_state
         move = next_move
+        params = next_params
         if any(if_terminated):
             info, label = dataset.next_batch(if_terminated.sum())
             for i in range(len(state)):
                 state[i][if_terminated] = info[i]
             move[if_terminated] = info[2]
+            for i in range(len(params)):
+                params[i][if_terminated] = info[3+i]
 
-         # save step
+        # save step
         if (i+1)%config.check_point == 0:
             save_path = saver.save(sess, "%s/value-epoch-%d" %(config.save_path, i))
             print("Model saved in file: %s" % save_path)
