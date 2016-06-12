@@ -133,12 +133,15 @@ def shuffle_args():
 
 
 if __name__ == '__main__':
-    file = '../pred.tensor'
-    fh = open(file, 'rb')
-    data, label, pred = pickle.load(fh)
+    from dataset import load_data
+    dataset = load_data('validation')
+    data, label= dataset.next_batch(1000)
 
-    selfpos = data[0][1]
-    emypos = data[1][1]
-    
-    selfmove, emymove, selfprot, emyprot = gentensor(selfpos, emypos)
-    print(selfmove.shape)
+    for selfpos, emypos, selfmove, emymove, selfprot, emyprot in zip(*data):
+
+        new_selfmove, new_emymove, new_selfprot, new_emyprot = gentensor(selfpos, emypos)
+        from IPython import embed; embed()
+        assert all( (selfmove.sum(axis=2) == new_selfmove.sum(axis=2)).reshape(-1))
+        assert all( (emymove.sum(axis=2) == new_emymove.sum(axis=2))).reshape(-1)
+        assert all( (selfprot.sum(axis=2) == new_selfport.sum(axis=2))).reshape(-1)
+        assert all( (emyprot.sum(axis=2) == new_emyprot.sum(axis=2))).reshape(-1)

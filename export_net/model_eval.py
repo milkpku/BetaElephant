@@ -21,7 +21,7 @@ class Evaluer(object):
         self.dataset = load_data('validation')
 
         self.sess = tf.InteractiveSession()
-        self.model = get_model('train')
+        self.model = get_model('policy')
 
         saver = tf.train.Saver()
         saver.restore(self.sess, checkpoint_file)

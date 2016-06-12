@@ -15,7 +15,7 @@ def export_input_graph(model_folder):
     from model import get_model
 
     with tf.Session() as sess:
-        model = get_model('train')
+        model = get_model('policy')
 
         saver = tf.train.Saver()
 
