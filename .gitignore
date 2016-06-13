@@ -45,4 +45,4 @@ log.txt
 *.pb
 
 #tensor data
-#*.tensor
+*.tensor
