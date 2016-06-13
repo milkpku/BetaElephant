@@ -50,8 +50,14 @@ class Dataset(object):
                 line = self.__file_object.readline()
             frdpos[i], emypos[i], frdmove[i], emymove[i], frdprot[i], emyprot[i], movelabel[i] = self.__fen2tensor(line)
             i += 1
-        # return [frdpos, frdmove, emypos, emymove], movelabel
-        # return [frdpos, frdmove, emypos, emyprot], movelabel
+            frdpos[i] = __lrturn(frdpos[i-1])
+            emypos[i] = __lrturn(emypos[i-1])
+            frdmove[i] = __lrturn(frdmove[i-1])
+            emymove[i] = __lrturn(emymove[i-1])
+            frdprot[i] = __lrturn(frdprot[i-1])
+            emyprot[i] = __lrturn(emyprot[i-1])
+            movelabel[i] = __lrturn(movelabel[i-1])
+            i += 1
         return [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel
 
     def __fen2tensor(self, fen):
@@ -158,6 +164,12 @@ class Dataset(object):
         random.shuffle(seq)
         args.append(seq)
         return args
+
+    def __lrturn(self, tensor):
+        new = np.zeros(tensor.shape, dtype=OUT_TYPE)
+        for i in range(new.shape[0]/2):
+            new[i,:,:] = tensor[9-i,:,:]
+        return new
 
 def load_data(_type):
     '''
