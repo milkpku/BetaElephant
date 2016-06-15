@@ -18,14 +18,6 @@ class Dataset(object):
             self.__file_object = open(path + '/train.fen', 'r')
         if _type == 'validation':
             self.__file_object = open(path + '/valid.fen', 'r')
-        self.__chesslayer = {}
-
-    def __init_clayer(self):
-        # King(帅)*1, Advisor(仕)*2, Bishop(象)*2, kNight(马)*2
-        # Rook(车)*2, Cannon(炮)*2, Pawn(兵)*5
-        # Upper: red      Lower: black
-        self.__chesslayer = {'K':0, 'A':1, 'B':3, 'N':5, 'R':7, 'C':9, 'P':11,
-                             'k':0, 'a':1, 'b':3, 'n':5, 'r':7, 'c':9, 'p':11}
 
     def next_batch(self, batch_size):
         '''
@@ -48,134 +40,140 @@ class Dataset(object):
             else:
                 self.__file_object.seek(0, 0)
                 line = self.__file_object.readline()
-            frdpos[i], emypos[i], frdmove[i], emymove[i], frdprot[i], emyprot[i], movelabel[i] = self.__fen2tensor(line)
-            i += 1
-            frdpos[i] = __lrturn(frdpos[i-1])
-            emypos[i] = __lrturn(emypos[i-1])
-            frdmove[i] = __lrturn(frdmove[i-1])
-            emymove[i] = __lrturn(emymove[i-1])
-            frdprot[i] = __lrturn(frdprot[i-1])
-            emyprot[i] = __lrturn(emyprot[i-1])
-            movelabel[i] = __lrturn(movelabel[i-1])
-            i += 1
+            frdpos[i], emypos[i], frdmove[i], emymove[i], frdprot[i], emyprot[i], movelabel[i] = fen2tensor(line)
+            #print(line)
+            frdpos[i+1] = lrturn(frdpos[i])
+            emypos[i+1] = lrturn(emypos[i])
+            frdmove[i+1] = lrturn(frdmove[i])
+            emymove[i+1] = lrturn(emymove[i])
+            frdprot[i+1] = lrturn(frdprot[i])
+            emyprot[i+1] = lrturn(emyprot[i])
+            movelabel[i+1] = lrturn(movelabel[i-1])
+            i += 2
         return [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel
 
-    def __fen2tensor(self, fen):
+def fen2tensor(fen):
 
-        frdpos = np.zeros((9, 10, 16), dtype=OUT_TYPE)
-        emypos = np.zeros((9, 10, 16), dtype=OUT_TYPE)
-        frdmove = np.zeros((9, 10, 16), dtype=OUT_TYPE)
-        emymove = np.zeros((9, 10, 16), dtype=OUT_TYPE)
-        frdprot = np.zeros((9, 10, 16), dtype=OUT_TYPE)
-        emyprot = np.zeros((9, 10, 16), dtype=OUT_TYPE)
-        movelabel = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+    movelabel = np.zeros((9, 10, 16), dtype=OUT_TYPE)
 
-        fenlist = fen.split('\t')
-        frdpos, emypos = self.__f2tpos(fenlist[0], frdpos, emypos)
-        frdmove = self.__f2tmove(fenlist[1], frdmove, frdpos)
-        emymove = self.__f2tmove(fenlist[3], emymove, emypos)
-        frdprot = self.__f2tmove(fenlist[4], frdprot, frdpos)
-        emyprot = self.__f2tmove(fenlist[5], emyprot, emypos)
+    fenlist = fen.split('\t')
+    frdpos, emypos = f2tpos(fenlist[0])
+    frdmove = f2tmove(fenlist[1], frdpos)
+    emymove = f2tmove(fenlist[3], emypos)
+    frdprot = f2tmove(fenlist[4], frdpos)
+    emyprot = f2tmove(fenlist[5], emypos)
 
-        label = fenlist[2].strip().split('-')
-        layer = np.argmax(frdpos[self.__loca2i(label[0][0])][self.__loca2i(label[0][1])])
-        movelabel[self.__loca2i(label[1][0])][self.__loca2i(label[1][1])][layer] = 1
+    #print(fenlist[1])
 
+    label = fenlist[2].strip().split('-')
+    layer = np.argmax(frdpos[loca2i(label[0][0])][loca2i(label[0][1])])
+    movelabel[loca2i(label[1][0])][loca2i(label[1][1])][layer] = 1
 
-        if fenlist[0].split()[1] == 'b':
-            self.__switch_round(frdpos)
-            self.__switch_round(frdmove)
-            self.__switch_round(emypos)
-            self.__switch_round(emymove)
-            self.__switch_round(movelabel)
-            self.__switch_round(frdprot)
-            self.__switch_round(emyprot)
+    if fenlist[0].split()[1] == 'b':
+        frdpos = switch_round(frdpos)
+        frdmove = switch_round(frdmove)
+        emypos = switch_round(emypos)
+        emymove = switch_round(emymove)
+        movelabel = switch_round(movelabel)
+        frdprot = switch_round(frdprot)
+        emyprot = switch_round(emyprot)
 
-        # shuffle random
-        self.__shuffle([frdpos, frdmove, frdprot, movelabel], self.__shuffle_args())
-        self.__shuffle([emypos, emymove, emyprot], self.__shuffle_args())
+    # shuffle random
+    shuffle([frdpos, frdmove, frdprot, movelabel], shuffle_args())
+    shuffle([emypos, emymove, emyprot], shuffle_args())
 
-        return frdpos, emypos, frdmove, emymove, frdprot, emyprot, movelabel
+    return frdpos, emypos, frdmove, emymove, frdprot, emyprot, movelabel
 
-    def __f2tpos(self, fen, frdpos, emypos):
-        self.__init_clayer()
-        poslist = fen.split()[0].split('/')
-        player = fen.split()[1]
-        for i in range(len(poslist)):
-            item = poslist[i]
-            index = 0
-            for j in range(len(item)):
-                if item[j].isupper():
-                    if player == 'w':
-                        frdpos[index][i][self.__chesslayer[item[j]]] = 1
-                    else:
-                        emypos[index][i][self.__chesslayer[item[j]]] = 1
-                    self.__chesslayer[item[j]] += 1
-                    index += 1
-                elif item[j].islower():
-                    if player == 'w':
-                        emypos[index][i][self.__chesslayer[item[j]]] = 1
-                    else:
-                        frdpos[index][i][self.__chesslayer[item[j]]] = 1
-                    self.__chesslayer[item[j]] += 1
-                    index += 1
+def f2tpos(fen):
+
+    # King(帅)*1, Advisor(仕)*2, Bishop(象)*2, kNight(马)*2
+    # Rook(车)*2, Cannon(炮)*2, Pawn(兵)*5
+    # Upper: red      Lower: black
+    chesslayer = {'K':0, 'A':1, 'B':3, 'N':5, 'R':7, 'C':9, 'P':11,
+                  'k':0, 'a':1, 'b':3, 'n':5, 'r':7, 'c':9, 'p':11}
+
+    frdpos = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+    emypos = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+
+    poslist = fen.split()[0].split('/')
+    player = fen.split()[1]
+    for i in range(len(poslist)):
+        item = poslist[i]
+        index = 0
+        for j in range(len(item)):
+            if item[j].isupper():
+                if player == 'w':
+                    frdpos[index][i][chesslayer[item[j]]] = 1
                 else:
-                    index += int(item[j])
-        return frdpos, emypos
+                    emypos[index][i][chesslayer[item[j]]] = 1
+                chesslayer[item[j]] += 1
+                index += 1
+            elif item[j].islower():
+                if player == 'w':
+                    emypos[index][i][chesslayer[item[j]]] = 1
+                else:
+                    frdpos[index][i][chesslayer[item[j]]] = 1
+                chesslayer[item[j]] += 1
+                index += 1
+            else:
+                index += int(item[j])
+    return frdpos, emypos
 
-    def __f2tmove(self, movelist, move, pos):
-        movelist = movelist.split()
-        for item in movelist:
-            src = item.split('-')[0]
-            des = item.split('-')[1]
-            layer = np.argmax(pos[self.__loca2i(src[0])][self.__loca2i(src[1])])
-            move[self.__loca2i(des[0])][self.__loca2i(des[1])][layer] = 1
-        return move
+def f2tmove(movelist, pos):
+    move = np.zeros((9, 10, 16), dtype=OUT_TYPE)
+    movelist = movelist.split()
+    layer = np.argmax(pos, axis=2)
+    for item in movelist:
+        src = item.split('-')[0]
+        des = item.split('-')[1]
+        layerindex = layer[loca2i(src[0])][loca2i(src[1])]
+        move[loca2i(des[0])][loca2i(des[1])][layerindex] = 1
+    return move
 
-    def __loca2i(self, loc):
-        if loc.isupper():
-            return ord(loc)-ord('A')
-        else:
-            return int(loc)
+def loca2i(loc):
+    if loc.isupper():
+        return ord(loc)-ord('A')
+    else:
+        return (9 - int(loc))
 
-    def __switch_round(self, mat):
-        mat = mat[:,::-1,:]
+def switch_round(mat):
+    mat = mat[:,::-1,:]
+    return mat
 
-    def __shuffle(self, mat, args):
-        index = [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12,13,14,15]]
-        for item in mat:
-            for i in range(len(index)):
-                item[:,:,index[i]] = self.__switch_layer(item[:,:,index[i]], args[i])
+def shuffle(mat, args):
+    index = [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12,13,14,15]]
+    for item in mat:
+        for i in range(len(index)):
+            item[:,:,index[i]] = switch_layer(item[:,:,index[i]], args[i])
 
-    def __switch_layer(self, mat, args):
-        mat_temp = copy.deepcopy(mat)
-        assert len(args) == mat.shape[2]
-        for k in range(len(args)):
-            mat[:,:,k] = mat_temp[:,:,args[k]]
-        return mat
+def switch_layer(mat, args):
+    mat_temp = copy.deepcopy(mat)
+    assert len(args) == mat.shape[2]
+    for k in range(len(args)):
+        mat[:,:,k] = mat_temp[:,:,args[k]]
+    return mat
 
-    def __shuffle_args(self):
-        args = []
-        for i in range(5):
-            a = [0,1]
-            random.shuffle(a)
-            args.append(a)
-        seq = [0,1,2,3,4]
-        random.shuffle(seq)
-        args.append(seq)
-        return args
+def shuffle_args():
+    args = []
+    for i in range(5):
+        a = [0,1]
+        random.shuffle(a)
+        args.append(a)
+    seq = [0,1,2,3,4]
+    random.shuffle(seq)
+    args.append(seq)
+    return args
 
-    def __lrturn(self, tensor):
-        new = np.zeros(tensor.shape, dtype=OUT_TYPE)
-        for i in range(new.shape[0]/2):
-            new[i,:,:] = tensor[9-i,:,:]
-        return new
+def lrturn(tensor):
+    new = tensor[::-1,:,:]
+    return new
+
 
 def load_data(_type):
     '''
     return dataset which yeild minibatch data
     '''
-    data = Dataset('/home/mlk/BetaElephant/data', _type)
+    data = Dataset('../data', _type)
     return data
 
 def visualdata(data):
@@ -184,24 +182,22 @@ def visualdata(data):
         print(i)
         for j in range(data.shape[1]):
             for k in range(data.shape[0]):
-                print(int(data[k][9 - j][i])),
-            print('\n'),
-        print('\n')
+                print(int(data[k][j][i]),end='')
+            print('\n',end='')
     print('------------------------\n')
 
 
 if __name__ == '__main__':
     traindata = load_data('validation')
+    #traindata = load_data('train')
 
-    for i in range(10):
-        [frdpos, emypos, frdmov, emymove, frdprot, emyprot], movelabel = traindata.next_batch(10)
-        if 0:
-            visualdata(frdpos[0])
-            visualdata(frdmove[0])
-            visualdata(emypos[0])
+    for i in range(1):
+        [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel = traindata.next_batch(20)
 
-    for i in range(10):
-        [frdpos, emypos, frdmove, emymove, frdprot, emyprot], movelabel = traindata.next_batch(100)
+        visualdata(frdpos[0])
+        visualdata(frdmove[0])
+        visualdata(frdprot[0])
+
         # from IPython import embed; embed()
         # assert all protected pieces are selfpieces
         assert all((frdprot.sum(axis=3)*frdpos.sum(axis=3)==frdprot.sum(axis=3)).reshape(-1))
