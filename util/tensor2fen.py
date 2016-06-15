@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 #-*-coding:utf-8-*-
+#$File: tensor2fen.py
 
 import numpy as np
 import pickle
@@ -25,12 +26,12 @@ def tensor2state(tensor_frd, tensor_emy):
         for j in range(tensor_frd.shape[1]):
             if ~(tensor_frd[i][j] == 0).all():
                 layer = np.argmax(tensor_frd[i][j])
-                state[9-j][i] = chessfrdplayer[layer]
+                state[j][i] = chessfrdplayer[layer]
             elif ~(tensor_emy[i][j] == 0).all():
                 layer = np.argmax(tensor_emy[i][j])
-                state[9-j][i] = chessemyplayer[layer]
+                state[j][i] = chessemyplayer[layer]
             else:
-                state[9-j][i] = ' '
+                state[j][i] = ' '
     return state
 
 def state2fen(state):
@@ -58,7 +59,7 @@ def state2fen(state):
             zcnt = 0
         fen += '/'
     fen = fen[:-1]
-    fen += ' b'
+    fen += ' w'
     fen += ' - - 0 1'
     return fen
 
@@ -83,9 +84,9 @@ if __name__ == '__main__':
     fh = open(file, 'rb')
     data, label, pred = pickle.load(fh)
      
-    state = tensor2state(data[0][1],data[1][1])
+    state = tensor2state(data[0][0],data[1][0])
     fen = state2fen(state)
-    from IPython import embed;embed()
+    #from IPython import embed;embed()
     print(state)
     visualstate(state)
     print(fen)
