@@ -2,15 +2,11 @@
 #include "eleeye/position.h"
 using namespace std;
 
-void psigma(const char *const szFen, const int N, const int *const moves, double *const ps);
-//szFen是局面的Fen串，N是着法数量，move是着法的数组（长度为N的着法数组），以上是不可修改的输入
-//p是长度为N的概率数组，请对应着法数组的顺序输出每个着法的psigma
+void psigma(PositionStruct pos, double *const ps);
 
 int ppi(const char *const szFen, const int N, const int *const moves);
-//输入类似，返回P最大的着法的下标
 
 double value(const char *const szFen);
-//对输入的Fen串，返回红方的局面评价v
 
 int genMove(PositionStruct *pos, int* mv);
 
